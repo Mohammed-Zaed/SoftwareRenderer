@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <ctype.h>
-#include "SDL.h"
+#include "SDL2/SDL.h"
 
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
@@ -12,11 +12,9 @@ uint8_t initWindow(void)
 {
     uint8_t result = SDL_Init(SDL_INIT_EVERYTHING);
 
-
     if (result == 0)
     {
         printf("SDL Initialisation was sucessfull. \n");
-
     }
     else
     {
@@ -79,7 +77,6 @@ void processInput(void)
 
 void render(void)
 {
-    //TODO::
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     SDL_RenderClear(renderer);
     SDL_RenderPresent(renderer);
@@ -94,6 +91,5 @@ int main(void)
         update();
         render();
     }
-    printf("Main of software_renderer\n");
     return 0;
 }
