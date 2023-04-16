@@ -69,8 +69,19 @@ void setup(void)
     );
 }
 
-void update(void)
-{
+void drawGrid(uint32_t deltaX, uint32_t deltaY, uint32_t color) {
+
+    for (uint32_t y = 0; y < winWidth; y += deltaY) {
+        for (uint32_t x = 0; x < winHeight; ++x) {
+            colorBuffer[(winWidth * x) + y] = color;
+        }
+    }
+
+    for (uint32_t y = 0; y < winWidth; ++y) {
+        for (uint32_t x = 0; x < winHeight; x += deltaX) {
+            colorBuffer[(winWidth * x) + y] = color;
+        }
+    }
 }
 
 void processInput(void)
@@ -115,21 +126,25 @@ void renderColorBuffer(void)
     SDL_RenderCopy(renderer, colorBufferTexture, NULL, NULL);
 }
 
-void render(void)
-{
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
-    renderColorBuffer();
-    clearColorBuffer(0xFFFFFF00);
-    SDL_RenderPresent(renderer);
-}
-
 void destroy(void)
 {
     free(colorBuffer);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
+}
+
+void update(void) {
+    drawGrid(10U, 10U, 0xFF00FF00);
+}
+
+void render(void)
+{
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+    update();
+    renderColorBuffer();
+    SDL_RenderPresent(renderer);
 }
 
 int main(void)
