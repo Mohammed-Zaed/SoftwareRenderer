@@ -1,12 +1,17 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <assert.h>
 #include "SDL2/SDL.h"
 
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
+SDL_Texture* colorBufferTexture = NULL;
 
 bool isRunning = false;
+uint32_t* colorBuffer = NULL;
+const uint32_t winWidth = 800;
+const uint32_t winHeight = 600;
 
 uint8_t initWindow(void)
 {
@@ -25,8 +30,8 @@ uint8_t initWindow(void)
         NULL,
         SDL_WINDOWPOS_CENTERED, 
         SDL_WINDOWPOS_CENTERED,
-        800,
-        600,
+        winWidth,
+        winHeight,
         SDL_WINDOW_BORDERLESS
     );
     
@@ -50,11 +55,22 @@ uint8_t initWindow(void)
 void setup(void)
 {
     isRunning = !initWindow();
+    colorBuffer = (uint32_t*)malloc(sizeof(uint32_t) * winWidth * winHeight);
+    if (!colorBuffer) {
+        fprintf(stderr, "Error:: Memory allocation for color buffer failed.\n");
+    }
+    colorBufferTexture = SDL_CreateTexture(
+        renderer,
+        SDL_PIXELFORMAT_ARGB8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        winWidth,
+        winHeight
+    );
+
 }
 
 void update(void)
 {
-    //TODO::
 }
 
 void processInput(void)
@@ -75,11 +91,48 @@ void processInput(void)
     }
 }
 
+void clearColorBuffer(uint32_t color) {
+    for (uint32_t y = 0U; y < winHeight; ++y) {
+        for (uint32_t x = 0U; x < winWidth; ++x) {
+            colorBuffer[(winWidth * y) + x] = color;
+        }
+    }
+}
+
+void renderColorBuffer(void)
+{
+    int32_t result = SDL_UpdateTexture(
+                        colorBufferTexture,
+                        NULL,
+                        colorBuffer,
+                        winWidth * sizeof(uint32_t)
+                     ); 
+    
+    if (result)
+    {
+        const char* errorMessage = SDL_GetError();
+        fprintf(stderr, "Error:: %s", errorMessage);
+        assert(errorMessage);
+    }
+
+    SDL_RenderCopy(renderer, colorBufferTexture, NULL, NULL);
+}
+
 void render(void)
 {
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
+    renderColorBuffer();
+    clearColorBuffer(0xFFFFFF00);
     SDL_RenderPresent(renderer);
+}
+
+void destroy(void)
+{
+    free(colorBuffer);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 }
 
 int main(void)
@@ -90,6 +143,8 @@ int main(void)
         processInput();
         update();
         render();
+        renderColorBuffer();
     }
+    destroy();
     return 0;
 }
