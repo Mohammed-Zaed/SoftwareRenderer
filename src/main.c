@@ -10,13 +10,12 @@ SDL_Texture* colorBufferTexture = NULL;
 
 bool isRunning = false;
 uint32_t* colorBuffer = NULL;
-const uint32_t winWidth = 800;
-const uint32_t winHeight = 600;
+uint32_t winWidth = 800;
+uint32_t winHeight = 600;
 
 uint8_t initWindow(void)
 {
     uint8_t result = SDL_Init(SDL_INIT_EVERYTHING);
-
     if (result == 0)
     {
         printf("SDL Initialisation was sucessfull. \n");
@@ -25,7 +24,11 @@ uint8_t initWindow(void)
     {
         fprintf(stderr, "Error Initialising window.\n");
     }
-    
+    SDL_DisplayMode displayMode;
+    SDL_GetCurrentDisplayMode(0, &displayMode);
+    winWidth = displayMode.w;
+    winHeight = displayMode.h;
+
     window = SDL_CreateWindow(
         NULL,
         SDL_WINDOWPOS_CENTERED, 
@@ -34,27 +37,25 @@ uint8_t initWindow(void)
         winHeight,
         SDL_WINDOW_BORDERLESS
     );
-    
     if(!window)
     {
         fprintf(stderr, "Error:: Creating sdl window");
         result = 1;
     }
-
     renderer = SDL_CreateRenderer(window, -1, 0);
-
     if(!renderer)
     {
         fprintf(stderr, "Error:: Creating sdl renderer");
         result = 2;
     }
-    
     return result;
 }
 
 void setup(void)
 {
     isRunning = !initWindow();
+    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+    
     colorBuffer = (uint32_t*)malloc(sizeof(uint32_t) * winWidth * winHeight);
     if (!colorBuffer) {
         fprintf(stderr, "Error:: Memory allocation for color buffer failed.\n");
@@ -66,7 +67,6 @@ void setup(void)
         winWidth,
         winHeight
     );
-
 }
 
 void update(void)
@@ -77,7 +77,6 @@ void processInput(void)
 {
     SDL_Event event;
     SDL_PollEvent(&event);
-
     switch(event.type) {
         case SDL_QUIT:
             isRunning = false;
@@ -107,14 +106,12 @@ void renderColorBuffer(void)
                         colorBuffer,
                         winWidth * sizeof(uint32_t)
                      ); 
-    
     if (result)
     {
         const char* errorMessage = SDL_GetError();
         fprintf(stderr, "Error:: %s", errorMessage);
         assert(errorMessage);
     }
-
     SDL_RenderCopy(renderer, colorBufferTexture, NULL, NULL);
 }
 
@@ -138,7 +135,6 @@ void destroy(void)
 int main(void)
 {
     setup();
-
     while(isRunning) {
         processInput();
         update();
