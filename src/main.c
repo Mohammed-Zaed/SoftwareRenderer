@@ -1,60 +1,21 @@
 #include <stdio.h>
-#include <stdbool.h>
 #include <ctype.h>
-#include <assert.h>
+#include <stdbool.h>
+#include "display.h"
 #include "SDL2/SDL.h"
 
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 SDL_Texture* colorBufferTexture = NULL;
 
-bool isRunning = false;
+static bool isRunning = false;
 uint32_t* colorBuffer = NULL;
 uint32_t winWidth = 800;
 uint32_t winHeight = 600;
 
-uint8_t initWindow(void)
-{
-    uint8_t result = SDL_Init(SDL_INIT_EVERYTHING);
-    if (result == 0)
-    {
-        printf("SDL Initialisation was sucessfull. \n");
-    }
-    else
-    {
-        fprintf(stderr, "Error Initialising window.\n");
-    }
-    SDL_DisplayMode displayMode;
-    SDL_GetCurrentDisplayMode(0, &displayMode);
-    winWidth = displayMode.w;
-    winHeight = displayMode.h;
-
-    window = SDL_CreateWindow(
-        NULL,
-        SDL_WINDOWPOS_CENTERED, 
-        SDL_WINDOWPOS_CENTERED,
-        winWidth,
-        winHeight,
-        SDL_WINDOW_BORDERLESS
-    );
-    if(!window)
-    {
-        fprintf(stderr, "Error:: Creating sdl window");
-        result = 1;
-    }
-    renderer = SDL_CreateRenderer(window, -1, 0);
-    if(!renderer)
-    {
-        fprintf(stderr, "Error:: Creating sdl renderer");
-        result = 2;
-    }
-    return result;
-}
-
 void setup(void)
 {
     isRunning = !initWindow();
-    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
     
     colorBuffer = (uint32_t*)malloc(sizeof(uint32_t) * winWidth * winHeight);
     if (!colorBuffer) {
@@ -67,21 +28,6 @@ void setup(void)
         winWidth,
         winHeight
     );
-}
-
-void drawGrid(uint32_t deltaX, uint32_t deltaY, uint32_t color) {
-
-    for (uint32_t y = 0; y < winWidth; y += deltaY) {
-        for (uint32_t x = 0; x < winHeight; ++x) {
-            colorBuffer[(winWidth * x) + y] = color;
-        }
-    }
-
-    for (uint32_t y = 0; y < winWidth; ++y) {
-        for (uint32_t x = 0; x < winHeight; x += deltaX) {
-            colorBuffer[(winWidth * x) + y] = color;
-        }
-    }
 }
 
 void processInput(void)
@@ -101,45 +47,6 @@ void processInput(void)
     }
 }
 
-void clearColorBuffer(uint32_t color) {
-    for (uint32_t y = 0U; y < winHeight; ++y) {
-        for (uint32_t x = 0U; x < winWidth; ++x) {
-            colorBuffer[(winWidth * y) + x] = color;
-        }
-    }
-}
-
-void renderColorBuffer(void)
-{
-    int32_t result = SDL_UpdateTexture(
-                        colorBufferTexture,
-                        NULL,
-                        colorBuffer,
-                        winWidth * sizeof(uint32_t)
-                     ); 
-    if (result)
-    {
-        const char* errorMessage = SDL_GetError();
-        fprintf(stderr, "Error:: %s", errorMessage);
-        assert(errorMessage);
-    }
-    SDL_RenderCopy(renderer, colorBufferTexture, NULL, NULL);
-}
-
-void destroy(void)
-{
-    free(colorBuffer);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-}
-void drawFillRectangle(uint32_t x, uint32_t y, uint32_t l1, uint32_t l2, uint32_t color) {
-    for (uint32_t i = y; i < (l1 + y); ++i) {
-        for (uint32_t j = x; j < (l2 + x); ++j) {
-            colorBuffer[(winWidth  * j) + i] = color;
-        }
-    }
-}
 void update(void) {
     drawGrid(10U, 10U, 0xFF00FF00);
     static uint32_t i = 0;
@@ -168,10 +75,9 @@ int main(void)
     setup();
     while(isRunning) {
         processInput();
-        update();
         render();
         renderColorBuffer();
     }
-    destroy();
+    destroyWindow();
     return 0;
 }

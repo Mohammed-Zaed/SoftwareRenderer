@@ -5,6 +5,8 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKEE_C_FLAGS "-Wall -Werror")
 
 set(SRC_FILES 
+    src/display.h
+    src/display.c
     src/main.c
 )
 
