@@ -48,16 +48,7 @@ void processInput(void)
 }
 
 void update(void) {
-    drawGrid(10U, 10U, 0xFF00FF00);
-    static uint32_t i = 0;
-    static uint32_t j = 0;
-    register uint32_t column = (i+10U) % winWidth;
-    i = column;
-    if (!column)
-    {
-        j = (j + 10U) % winHeight;
-    }
-    drawFillRectangle(j, i, 10, 10, 0xFFFFFF00);
+    drawPixel(100U,50U, 0xFFFFFF00);
 }
 
 void render(void)
