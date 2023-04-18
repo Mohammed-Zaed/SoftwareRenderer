@@ -15,12 +15,9 @@ extern uint32_t winHeight;
 uint8_t initWindow(void)
 {
     uint8_t result = SDL_Init(SDL_INIT_EVERYTHING);
-    if (result == 0)
-    {
+    if (result == 0) {
         printf("SDL Initialisation was sucessfull. \n");
-    }
-    else
-    {
+    } else {
         fprintf(stderr, "Error Initialising window.\n");
     }
     SDL_DisplayMode displayMode;
@@ -92,6 +89,7 @@ void destroyWindow(void)
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
+
 void drawFillRectangle(uint32_t x, uint32_t y, uint32_t l1, uint32_t l2, uint32_t color) {
     for (uint32_t i = y; i < (l1 + y); ++i) {
         for (uint32_t j = x; j < (l2 + x); ++j) {
@@ -99,13 +97,11 @@ void drawFillRectangle(uint32_t x, uint32_t y, uint32_t l1, uint32_t l2, uint32_
         }
     }
 }
+
 void drawPixel(uint32_t x, uint32_t y, uint32_t color) {
     if ((x < winWidth) && (y < winHeight)) {
         colorBuffer[(winWidth * y) + x] = color;
-    }
-    else
-    {
+    } else {
         fprintf(stderr, "Error:: Pixel x or y out of boundary\n");
     }
-
 }
