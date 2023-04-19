@@ -25,6 +25,7 @@ const float fovFactor = 1000.00F;
 vec3_t cube[NUM_OF_VECTORS_CUBE] = {0};
 
 vec3_t cameraPosition = {0.0, 0.0, -5.0};
+vec3_t cubeRotation = {0.0, 0.0, 0.0};
 
 
 void setup(void)
@@ -84,19 +85,25 @@ vec2_t project(vec3_t point) {
 }
 
 void update(void) {
+    cubeRotation.x += 0.001;
+    cubeRotation.y += 0.001;
+    cubeRotation.z += 0.001;
 
     for (uint32_t i = 0U; i < NUM_OF_VECTORS_CUBE; ++i) {
         vec3_t currentVector = cube[i];
+        vec3_t transformedPoint = vec3RotateX(currentVector, cubeRotation.x);
+        transformedPoint = vec3RotateY(transformedPoint, cubeRotation.y);
+        transformedPoint = vec3RotateZ(transformedPoint, cubeRotation.z);
         //Moving camera by z 
-        currentVector.z -= cameraPosition.z;
-        vec2_t projectedVector = project(currentVector);
+        transformedPoint.z -= cameraPosition.z;
+        vec2_t projectedVector = project(transformedPoint);
 
         drawFillRectangle(
                projectedVector.x + (winWidth / 2U),
                projectedVector.y + (winHeight / 2U),
                5U,
                5U,
-               0x0000FF00
+               0xFF00FF00
         );
 
         drawPixel(

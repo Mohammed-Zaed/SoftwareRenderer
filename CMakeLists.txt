@@ -8,6 +8,7 @@ set(SRC_FILES
     src/display.h
     src/display.c
     src/vector.h
+    src/vector.c
     src/main.c
 )
 
