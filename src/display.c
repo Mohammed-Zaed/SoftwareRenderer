@@ -90,18 +90,18 @@ void destroyWindow(void)
     SDL_Quit();
 }
 
-void drawFillRectangle(uint32_t x, uint32_t y, uint32_t l1, uint32_t l2, uint32_t color) {
-    for (uint32_t i = y; i < (l1 + y); ++i) {
-        for (uint32_t j = x; j < (l2 + x); ++j) {
-            colorBuffer[(winWidth  * j) + i] = color;
-        }
-    }
-}
-
 void drawPixel(uint32_t x, uint32_t y, uint32_t color) {
     if ((x < winWidth) && (y < winHeight)) {
         colorBuffer[(winWidth * y) + x] = color;
     } else {
         fprintf(stderr, "Error:: Pixel x or y out of boundary\n");
+    }
+}
+
+void drawFillRectangle(uint32_t x, uint32_t y, uint32_t l1, uint32_t l2, uint32_t color) {
+    for (uint32_t i = y; i < (l1 + y); ++i) {
+        for (uint32_t j = x; j < (l2 + x); ++j) {
+            drawPixel(j, i, color);
+        }
     }
 }
