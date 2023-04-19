@@ -21,8 +21,10 @@ const uint32_t VECTORS_FOR_EACH_AXIS = 9U;
 const uint32_t NUM_OF_VECTORS_CUBE = VECTORS_FOR_EACH_AXIS * VECTORS_FOR_EACH_AXIS * VECTORS_FOR_EACH_AXIS;
 const uint32_t LENGTH_OF_CUBE = 2U;
 
-const float fovFactor = 128.00F;
+const float fovFactor = 1000.00F;
 vec3_t cube[NUM_OF_VECTORS_CUBE] = {0};
+
+vec3_t cameraPosition = {0.0, 0.0, -5.0};
 
 
 void setup(void)
@@ -75,8 +77,8 @@ void processInput(void)
 
 vec2_t project(vec3_t point) {
     vec2_t projectedPoint = {
-        fovFactor * point.x,
-        fovFactor * point.y
+        (fovFactor * point.x) / point.z,
+        (fovFactor * point.y) / point.z
     };
     return projectedPoint;
 }
@@ -84,14 +86,19 @@ vec2_t project(vec3_t point) {
 void update(void) {
 
     for (uint32_t i = 0U; i < NUM_OF_VECTORS_CUBE; ++i) {
-        vec2_t projectedVector = project(cube[i]);
+        vec3_t currentVector = cube[i];
+        //Moving camera by z 
+        currentVector.z -= cameraPosition.z;
+        vec2_t projectedVector = project(currentVector);
+
         drawFillRectangle(
-                projectedVector.x + (winWidth / 2U),
-                projectedVector.y + (winHeight / 2U),
-                5U,
-                5U,
-                0x0000FF00
+               projectedVector.x + (winWidth / 2U),
+               projectedVector.y + (winHeight / 2U),
+               5U,
+               5U,
+               0x0000FF00
         );
+
         drawPixel(
                 projectedVector.x + (winWidth / 2U),
                 projectedVector.y + (winHeight / 2U),
