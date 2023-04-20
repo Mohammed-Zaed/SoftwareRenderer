@@ -15,6 +15,7 @@ uint32_t winWidth = 800;
 uint32_t winHeight = 600;
 
 uint32_t* colorBuffer = NULL;
+const uint32_t FPS = 33;
 static bool isRunning = false;
 
 const uint32_t VECTORS_FOR_EACH_AXIS = 9U;
@@ -85,9 +86,9 @@ vec2_t project(vec3_t point) {
 }
 
 void update(void) {
-    cubeRotation.x += 0.001;
-    cubeRotation.y += 0.001;
-    cubeRotation.z += 0.001;
+    cubeRotation.x += 0.01;
+    cubeRotation.y += 0.01;
+    cubeRotation.z += 0.01;
 
     for (uint32_t i = 0U; i < NUM_OF_VECTORS_CUBE; ++i) {
         vec3_t currentVector = cube[i];
@@ -129,6 +130,7 @@ int main(void)
     setup();
 
     while(isRunning) {
+        SDL_Delay(FPS);
         processInput();
         render();
         renderColorBuffer();
