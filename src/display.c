@@ -84,7 +84,6 @@ void renderColorBuffer(void)
 
 void destroyWindow(void)
 {
-    free(colorBuffer);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();

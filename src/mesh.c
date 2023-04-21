@@ -1,6 +1,14 @@
+#include "stdio.h"
 #include "mesh.h"
+#include "array.h"
 
-vec3_t meshVertices[MESH_VERTICES_COUNT] = {
+mesh_t mesh = {
+    NULL,
+    NULL,
+    {0.0F, 0.0F, 0.0F}
+};
+
+vec3_t cubeVertices[CUBE_VERTICES_COUNT] = {
     {-1.0F, -1.0F, -1.0F}, //1
     {-1.0F,  1.0F, -1.0F}, //2
     { 1.0F,  1.0F, -1.0F}, //3
@@ -10,7 +18,7 @@ vec3_t meshVertices[MESH_VERTICES_COUNT] = {
     {-1.0F,  1.0F,  1.0F}, //7
     {-1.0F, -1.0F,  1.0F}  //8
 };
-face_t meshFaces[MESH_FACES_COUNT] = {
+face_t cubeFaces[CUBE_FACES_COUNT] = {
     //front
     {1U, 2U, 3U},
     {1U, 3U, 4U},
@@ -30,3 +38,15 @@ face_t meshFaces[MESH_FACES_COUNT] = {
     {6U, 8U, 1U},
     {6U, 1U, 4U}
 };
+
+void loadCubeMeshData(void) {
+    for (uint32_t i = 0U; i < CUBE_VERTICES_COUNT; ++i) {
+        vec3_t cubeVertex = cubeVertices[i];
+        array_push(mesh.vertices, cubeVertex);
+    }
+
+    for (uint32_t i = 0U; i < CUBE_FACES_COUNT; ++i) {
+        face_t cubeFace = cubeFaces[i];
+        array_push(mesh.faces, cubeFace);
+    }
+}
