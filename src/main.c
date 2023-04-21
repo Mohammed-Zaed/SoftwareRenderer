@@ -112,9 +112,16 @@ void render(void)
 
     for (uint32_t i = 0U; i < MESH_FACES_COUNT; ++i) {
         traingle_t currentTriangle = trianglesToRender[i];
-        drawFillRectangle(currentTriangle.points[0].x, currentTriangle.points[0].y, 5, 5, 0xFFFFFF00);
-        drawFillRectangle(currentTriangle.points[1].x, currentTriangle.points[1].y, 5, 5, 0xFFFFFF00);
-        drawFillRectangle(currentTriangle.points[2].x, currentTriangle.points[2].y, 5, 5, 0xFFFFFF00);
+
+        drawTriangle(
+            currentTriangle.points[0].x,
+            currentTriangle.points[0].y, 
+            currentTriangle.points[1].x,
+            currentTriangle.points[1].y, 
+            currentTriangle.points[2].x,
+            currentTriangle.points[2].y, 
+            0xFFFFFF00
+        );
     }
 
     renderColorBuffer();

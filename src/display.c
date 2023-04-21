@@ -105,3 +105,28 @@ void drawFillRectangle(uint32_t x, uint32_t y, uint32_t l1, uint32_t l2, uint32_
         }
     }
 }
+
+void drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color) {
+    int32_t deltaX = x1 - x0;
+    int32_t deltaY = y1 - y0;
+
+    uint32_t longestSideLength = abs(deltaX) >= abs(deltaY) ? abs(deltaX) : abs(deltaY);
+    
+    float xInc = (float)deltaX / (float)longestSideLength;
+    float yInc = (float)deltaY / (float)longestSideLength;
+    
+    float currX = x0;
+    float currY = y0;
+
+    for (uint32_t i = 0U; i <= longestSideLength; ++i) {
+        drawPixel(round(currX), round(currY), color);
+        currX += xInc;
+        currY += yInc;
+    }
+}
+
+void drawTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color) {
+    drawLine(x0, y0, x1, y1, color);
+    drawLine(x1, y1, x2, y2, color);
+    drawLine(x2, y2, x0, y0, color);
+}
