@@ -6,6 +6,8 @@
 
 #include "display.h"
 #include "vector.h"
+#include "triangle.h"
+#include "mesh.h"
 
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
@@ -18,15 +20,14 @@ uint32_t* colorBuffer = NULL;
 const uint32_t FPS = 33;
 static bool isRunning = false;
 
-const uint32_t VECTORS_FOR_EACH_AXIS = 9U;
-const uint32_t NUM_OF_VECTORS_CUBE = VECTORS_FOR_EACH_AXIS * VECTORS_FOR_EACH_AXIS * VECTORS_FOR_EACH_AXIS;
-const uint32_t LENGTH_OF_CUBE = 2U;
 
-const float fovFactor = 1000.00F;
-vec3_t cube[NUM_OF_VECTORS_CUBE] = {0};
+const uint32_t fovFactor = 800.00F;
 
 vec3_t cameraPosition = {0.0, 0.0, -5.0};
 vec3_t cubeRotation = {0.0, 0.0, 0.0};
+
+traingle_t trianglesToRender[MESH_FACES_COUNT];
+
 
 
 void setup(void)
@@ -45,18 +46,6 @@ void setup(void)
         winWidth,
         winHeight
     );
-
-    const float delta = ((float)LENGTH_OF_CUBE / (float)VECTORS_FOR_EACH_AXIS) + 0.005F;
-    uint32_t currentIndex = 0U;
-
-    for (float x = -1.0; x <= 1.0F; x +=  delta) {
-        for (float y = -1.0; y <= 1.0F; y += delta) {
-            for (float z = -1.0; z <= 1.0F; z += delta) {
-                vec3_t point = { .x = x, .y = y, .z = z};
-                cube[currentIndex++] = point;
-            }
-        }
-    }
 }
 
 void processInput(void)
@@ -86,33 +75,32 @@ vec2_t project(vec3_t point) {
 }
 
 void update(void) {
-    cubeRotation.x += 0.01;
-    cubeRotation.y += 0.01;
-    cubeRotation.z += 0.01;
+    for (uint32_t i = 0U; i < MESH_FACES_COUNT; ++i) {
+        face_t currentFace = meshFaces[i];
+        vec3_t faceVertices[3] = {};
 
-    for (uint32_t i = 0U; i < NUM_OF_VECTORS_CUBE; ++i) {
-        vec3_t currentVector = cube[i];
-        vec3_t transformedPoint = vec3RotateX(currentVector, cubeRotation.x);
-        transformedPoint = vec3RotateY(transformedPoint, cubeRotation.y);
-        transformedPoint = vec3RotateZ(transformedPoint, cubeRotation.z);
-        //Moving camera by z 
-        transformedPoint.z -= cameraPosition.z;
-        vec2_t projectedVector = project(transformedPoint);
+        faceVertices[0] = meshVertices[currentFace.a - 1U];
+        faceVertices[1] = meshVertices[currentFace.b - 1U];
+        faceVertices[2] = meshVertices[currentFace.c - 1U];
 
-        drawFillRectangle(
-               projectedVector.x + (winWidth / 2U),
-               projectedVector.y + (winHeight / 2U),
-               5U,
-               5U,
-               0xFF00FF00
-        );
+        traingle_t projectedTriangle;
+        
+        cubeRotation.x += 0.001F;
+        cubeRotation.y += 0.001F;
+        cubeRotation.z += 0.001F;
 
-        drawPixel(
-                projectedVector.x + (winWidth / 2U),
-                projectedVector.y + (winHeight / 2U),
-                0xFFFF0000
-        );
-
+        for (uint32_t j = 0U; j < 3U; ++j) {
+            vec3_t currentVertex = faceVertices[j];
+            currentVertex = vec3RotateX(currentVertex, cubeRotation.x);
+            currentVertex = vec3RotateY(currentVertex, cubeRotation.y);
+            currentVertex = vec3RotateZ(currentVertex, cubeRotation.z);
+            currentVertex.z -= cameraPosition.z;
+            vec2_t projectedVertex = project(currentVertex);
+            projectedVertex.x += winWidth / 2;
+            projectedVertex.y += winHeight / 2;
+            projectedTriangle.points[j] = projectedVertex;
+        }
+        trianglesToRender[i] = projectedTriangle;
     }
 }
 
@@ -121,6 +109,14 @@ void render(void)
     SDL_RenderClear(renderer);
     clearColorBuffer(0x00);
     update();
+
+    for (uint32_t i = 0U; i < MESH_FACES_COUNT; ++i) {
+        traingle_t currentTriangle = trianglesToRender[i];
+        drawFillRectangle(currentTriangle.points[0].x, currentTriangle.points[0].y, 5, 5, 0xFFFFFF00);
+        drawFillRectangle(currentTriangle.points[1].x, currentTriangle.points[1].y, 5, 5, 0xFFFFFF00);
+        drawFillRectangle(currentTriangle.points[2].x, currentTriangle.points[2].y, 5, 5, 0xFFFFFF00);
+    }
+
     renderColorBuffer();
     SDL_RenderPresent(renderer);
 }

@@ -7,8 +7,14 @@ set(CMAKEE_C_FLAGS "-Wall -Werror")
 set(SRC_FILES 
     src/display.h
     src/display.c
+
     src/vector.h
     src/vector.c
+    src/triangle.h
+    src/triangle.c
+    src/mesh.h
+    src/mesh.c
+
     src/main.c
 )
 
