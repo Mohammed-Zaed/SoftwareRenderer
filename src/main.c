@@ -22,6 +22,9 @@ static bool isRunning = false;
 
 const uint32_t FPS = 33;
 const uint32_t fovFactor = 800.00F;
+const uint32_t FRAME_TARGET_TIME = 1000 / 33;
+
+uint32_t prevFrameTime = 0;
 
 vec3_t cameraPosition = {0.0, 0.0, -5.0};
 traingle_t* trianglesToRender = NULL;
@@ -43,7 +46,7 @@ void setup(void)
         winHeight
     );
     
-    loadCubeMeshData();
+    loadObjData("./assets/f22.obj");
 }
 
 void processInput(void)
@@ -73,6 +76,11 @@ vec2_t project(vec3_t point) {
 }
 
 void update(void) {
+    uint32_t timeToWait = FRAME_TARGET_TIME - (SDL_GetTicks() - prevFrameTime);
+
+    if (timeToWait > 0 && timeToWait <= FRAME_TARGET_TIME) {
+        SDL_Delay(timeToWait);
+    }
 
     uint32_t meshFacesCount = array_length(mesh.faces);
     for (uint32_t i = 0U; i < meshFacesCount; ++i) {
@@ -85,9 +93,9 @@ void update(void) {
 
         traingle_t projectedTriangle;
         
-        mesh.rotation.x += 0.001F;
-        mesh.rotation.y += 0.001F;
-        mesh.rotation.z += 0.001F;
+        mesh.rotation.x += 0.0001F;
+        // mesh.rotation.y += 0.001F;
+        // mesh.rotation.z += 0.001F;
 
         for (uint32_t j = 0U; j < 3U; ++j) {
             vec3_t currentVertex = faceVertices[j];
@@ -110,19 +118,20 @@ void render(void)
     clearColorBuffer(0x00);
     update();
 
-    const int32_t numOfTriangles = array_length(mesh.vertices);
+    const int32_t numOfTriangles = array_length(trianglesToRender);
     for (uint32_t i = 0U; i < numOfTriangles; ++i) {
         traingle_t currentTriangle = trianglesToRender[i];
 
         drawTriangle(
-            currentTriangle.points[0].x,
-            currentTriangle.points[0].y, 
-            currentTriangle.points[1].x,
-            currentTriangle.points[1].y, 
-            currentTriangle.points[2].x,
-            currentTriangle.points[2].y, 
+            currentTriangle.points[0].x, currentTriangle.points[0].y, 
+            currentTriangle.points[1].x, currentTriangle.points[1].y, 
+            currentTriangle.points[2].x, currentTriangle.points[2].y, 
             0xFFFFFF00
         );
+        
+        drawFillRectangle(currentTriangle.points[0].x, currentTriangle.points[0].y, 3U, 3U, 0xFF0000FF);
+        drawFillRectangle(currentTriangle.points[1].x, currentTriangle.points[1].y, 3U, 3U, 0xFF0000FF);
+        drawFillRectangle(currentTriangle.points[2].x, currentTriangle.points[2].y, 3U, 3U, 0xFF0000FF);
     }
     array_free(trianglesToRender);
     trianglesToRender = NULL;
@@ -133,7 +142,7 @@ void render(void)
 
 void freeResources(void) {
     array_free(mesh.vertices);
-    array_free(mesh.vertices);
+    array_free(mesh.faces);
     free(colorBuffer);
 }
 
