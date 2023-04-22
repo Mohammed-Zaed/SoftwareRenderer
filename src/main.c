@@ -26,7 +26,7 @@ const uint32_t FRAME_TARGET_TIME = 1000 / 33;
 
 uint32_t prevFrameTime = 0;
 
-vec3_t cameraPosition = {0.0, 0.0, -5.0};
+vec3_t cameraPosition = {0.0, 0.0, 0.0};
 traingle_t* trianglesToRender = NULL;
 
 void setup(void)
@@ -85,7 +85,7 @@ void update(void) {
     uint32_t meshFacesCount = array_length(mesh.faces);
     for (uint32_t i = 0U; i < meshFacesCount; ++i) {
         face_t currentFace = mesh.faces[i];
-        vec3_t faceVertices[3] = {};
+        vec3_t faceVertices[3];
 
         faceVertices[0] = mesh.vertices[currentFace.a - 1U];
         faceVertices[1] = mesh.vertices[currentFace.b - 1U];
@@ -97,18 +97,40 @@ void update(void) {
         // mesh.rotation.y += 0.001F;
         // mesh.rotation.z += 0.001F;
 
+        vec3_t transformedVertices[3];
         for (uint32_t j = 0U; j < 3U; ++j) {
             vec3_t currentVertex = faceVertices[j];
             currentVertex = vec3RotateX(currentVertex, mesh.rotation.x);
             currentVertex = vec3RotateY(currentVertex, mesh.rotation.y);
             currentVertex = vec3RotateZ(currentVertex, mesh.rotation.z);
-            currentVertex.z -= cameraPosition.z;
-            vec2_t projectedVertex = project(currentVertex);
-            projectedVertex.x += winWidth / 2;
-            projectedVertex.y += winHeight / 2;
-            projectedTriangle.points[j] = projectedVertex;
+            currentVertex.z += 5.0F;
+            transformedVertices[j] = currentVertex;
         }
-        array_push(trianglesToRender, projectedTriangle);
+        
+        // Start of Back face culling for algorithm LHS
+        // Three verticies of transformed triangle face
+        const vec3_t a = transformedVertices[0];
+        const vec3_t b = transformedVertices[1];
+        const vec3_t c = transformedVertices[2];
+        
+        vec3_t ab = vec3Sub(b, a);
+        vec3_t ac = vec3Sub(c, a);
+        vec3_t normal = vec3Normalise(vec3Cross(ab, ac));
+        vec3_t cameraRay = vec3Normalise(vec3Sub(cameraPosition, a));
+        float isFrontFacing = vec3Dot(normal, cameraRay);
+        // End of Backface culling algorithm
+
+        if (isFrontFacing > 0.0F) {
+            for (uint32_t j = 0U; j < 3U; ++j)
+            {
+                vec3_t currentVertex = transformedVertices[j];
+                vec2_t projectedVertex = project(currentVertex);
+                projectedVertex.x += winWidth / 2;
+                projectedVertex.y += winHeight / 2;
+                projectedTriangle.points[j] = projectedVertex;
+            }
+            array_push(trianglesToRender, projectedTriangle);
+        }
     }
 }
 
