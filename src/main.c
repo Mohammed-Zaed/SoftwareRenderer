@@ -19,6 +19,10 @@ uint32_t winHeight = 600;
 
 uint32_t* colorBuffer = NULL;
 static bool isRunning = false;
+static bool isWireFrame = true;
+static bool isVertices = true;
+static bool isTriangle = true;
+static bool isBackFaceCulling = true;
 
 const uint32_t FPS = 33;
 const uint32_t fovFactor = 800.00F;
@@ -46,7 +50,7 @@ void setup(void)
         winHeight
     );
     
-    loadObjData("./assets/cube.obj");
+    loadObjData("./assets/f22.obj");
 }
 
 void processInput(void)
@@ -60,10 +64,56 @@ void processInput(void)
             break;
             
         case SDL_KEYDOWN:
-            if (event.key.keysym.sym == SDLK_ESCAPE) {
-                isRunning = false;
+            switch(event.key.keysym.sym) {
+                case SDLK_ESCAPE:
+                    isRunning = false;
+                break;
+                
+                case SDLK_1:
+                    // Display wire fram and red dot
+                    isWireFrame = true;
+                    isVertices = true;
+                    isTriangle = false;
+                break;
+
+                case SDLK_2:
+                    // Display only the wireframe lines.
+                    isWireFrame = true;
+                    isVertices = false;
+                    isTriangle = false;
+                break;
+
+                case SDLK_3:
+                    // Display filled triangles with solid color.
+                    isWireFrame = false;
+                    isVertices = false;
+                    isTriangle = true;
+                break;
+
+                case SDLK_4:
+                    //TODO:: Display both triangles and wireframe lines.
+                    isWireFrame = true;
+                    isVertices = false;
+                    isTriangle = true;
+                break;
+
+                case SDLK_5:
+                    //TODO:: Display both triangles and wireframe lines.
+                    isWireFrame = true;
+                    isVertices = true;
+                    isTriangle = true;
+                break;
+
+                case SDLK_c:
+                    // Enable back face culling
+                    isBackFaceCulling = true;
+                break;
+                
+                case SDLK_d:
+                    // Disable back face culling
+                    isBackFaceCulling = false;
+                break;
             }
-            break;
     }
 }
 
@@ -93,9 +143,9 @@ void update(void) {
 
         traingle_t projectedTriangle;
         
-        mesh.rotation.x += 0.001F;
-        mesh.rotation.y += 0.001F;
-        mesh.rotation.z += 0.001F;
+        mesh.rotation.x += 0.0001F;
+        // mesh.rotation.y += 0.001F;
+        // mesh.rotation.z += 0.001F;
 
         vec3_t transformedVertices[3];
         for (uint32_t j = 0U; j < 3U; ++j) {
@@ -118,9 +168,13 @@ void update(void) {
         vec3_t normal = vec3Normalise(vec3Cross(ab, ac));
         vec3_t cameraRay = vec3Normalise(vec3Sub(cameraPosition, a));
         float isFrontFacing = vec3Dot(normal, cameraRay);
+        bool cullFace = isFrontFacing <= 0.0F ? true : false;
         // End of Backface culling algorithm
 
-        if (isFrontFacing > 0.0F) {
+        // Culling is Enabled when back face culling is on. 
+        bool renderFace = !cullFace || !isBackFaceCulling;
+
+        if (renderFace) {
             for (uint32_t j = 0U; j < 3U; ++j)
             {
                 vec3_t currentVertex = transformedVertices[j];
@@ -144,24 +198,28 @@ void render(void)
     const int32_t numOfTriangles = array_length(trianglesToRender);
     for (uint32_t i = 0U; i < numOfTriangles; ++i) {
         traingle_t currentTriangle = trianglesToRender[i];
+        if (isWireFrame) {
+            drawTriangle(
+                currentTriangle.points[0].x, currentTriangle.points[0].y,
+                currentTriangle.points[1].x, currentTriangle.points[1].y,
+                currentTriangle.points[2].x, currentTriangle.points[2].y,
+                0xFFFFFF00
+            );
+        }
 
-        drawTriangle(
-            currentTriangle.points[0].x, currentTriangle.points[0].y, 
-            currentTriangle.points[1].x, currentTriangle.points[1].y, 
-            currentTriangle.points[2].x, currentTriangle.points[2].y, 
-            0xFFFFFF00
-        );
+        if (isTriangle) {
+            drawFilledTriangle(
+                currentTriangle.points[0].x, currentTriangle.points[0].y,
+                currentTriangle.points[1].x, currentTriangle.points[1].y,
+                currentTriangle.points[2].x, currentTriangle.points[2].y,
+                0xFFDCDCDC);
+        }
 
-        drawFilledTriangle(
-            currentTriangle.points[0].x, currentTriangle.points[0].y, 
-            currentTriangle.points[1].x, currentTriangle.points[1].y, 
-            currentTriangle.points[2].x, currentTriangle.points[2].y, 
-            0xFFDCDCDC
-        );
-
-        drawFillRectangle(currentTriangle.points[0].x, currentTriangle.points[0].y, 3U, 3U, 0xFF0000FF);
-        drawFillRectangle(currentTriangle.points[1].x, currentTriangle.points[1].y, 3U, 3U, 0xFF0000FF);
-        drawFillRectangle(currentTriangle.points[2].x, currentTriangle.points[2].y, 3U, 3U, 0xFF0000FF);
+        if (isVertices) {
+            drawFillRectangle(currentTriangle.points[0].x, currentTriangle.points[0].y, 3U, 3U, 0xFFFF0000);
+            drawFillRectangle(currentTriangle.points[1].x, currentTriangle.points[1].y, 3U, 3U, 0xFFFF0000);
+            drawFillRectangle(currentTriangle.points[2].x, currentTriangle.points[2].y, 3U, 3U, 0xFFFF0000);
+        }
     }
     array_free(trianglesToRender);
     trianglesToRender = NULL;
