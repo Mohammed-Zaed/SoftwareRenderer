@@ -2,6 +2,7 @@
 #define _TRIANGLE_H_
 
 #include <stdint.h>
+#include "vector.h"
 
 
 typedef struct {
@@ -13,6 +14,9 @@ typedef struct {
 typedef struct {
     vec2_t points[3];
 } traingle_t;
+
+void drawFilledTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color);
+void drawTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color);
 
 
 

@@ -46,7 +46,7 @@ void setup(void)
         winHeight
     );
     
-    loadObjData("./assets/f22.obj");
+    loadObjData("./assets/cube.obj");
 }
 
 void processInput(void)
@@ -93,9 +93,9 @@ void update(void) {
 
         traingle_t projectedTriangle;
         
-        mesh.rotation.x += 0.0001F;
-        // mesh.rotation.y += 0.001F;
-        // mesh.rotation.z += 0.001F;
+        mesh.rotation.x += 0.001F;
+        mesh.rotation.y += 0.001F;
+        mesh.rotation.z += 0.001F;
 
         vec3_t transformedVertices[3];
         for (uint32_t j = 0U; j < 3U; ++j) {
@@ -140,6 +140,7 @@ void render(void)
     clearColorBuffer(0x00);
     update();
 
+#if 1
     const int32_t numOfTriangles = array_length(trianglesToRender);
     for (uint32_t i = 0U; i < numOfTriangles; ++i) {
         traingle_t currentTriangle = trianglesToRender[i];
@@ -150,14 +151,24 @@ void render(void)
             currentTriangle.points[2].x, currentTriangle.points[2].y, 
             0xFFFFFF00
         );
-        
+
+        drawFilledTriangle(
+            currentTriangle.points[0].x, currentTriangle.points[0].y, 
+            currentTriangle.points[1].x, currentTriangle.points[1].y, 
+            currentTriangle.points[2].x, currentTriangle.points[2].y, 
+            0xFFDCDCDC
+        );
+
         drawFillRectangle(currentTriangle.points[0].x, currentTriangle.points[0].y, 3U, 3U, 0xFF0000FF);
         drawFillRectangle(currentTriangle.points[1].x, currentTriangle.points[1].y, 3U, 3U, 0xFF0000FF);
         drawFillRectangle(currentTriangle.points[2].x, currentTriangle.points[2].y, 3U, 3U, 0xFF0000FF);
     }
     array_free(trianglesToRender);
     trianglesToRender = NULL;
-
+#else
+    drawTriangle(300, 100, 50,400, 500, 700, 0xFF00FF00);
+    drawFilledTriangle(300, 100, 50,400, 500, 700, 0xFF0000FF);
+#endif
     renderColorBuffer();
     SDL_RenderPresent(renderer);
 }

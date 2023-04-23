@@ -123,9 +123,3 @@ void drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color) {
         currY += yInc;
     }
 }
-
-void drawTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color) {
-    drawLine(x0, y0, x1, y1, color);
-    drawLine(x1, y1, x2, y2, color);
-    drawLine(x2, y2, x0, y0, color);
-}
