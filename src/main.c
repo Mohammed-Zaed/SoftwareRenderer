@@ -50,7 +50,8 @@ void setup(void)
         winHeight
     );
     
-    loadObjData("./assets/f22.obj");
+    loadCubeMeshData();
+    // loadObjData("./assets/f22.obj");
 }
 
 void processInput(void)
@@ -143,9 +144,9 @@ void update(void) {
 
         traingle_t projectedTriangle;
         
-        mesh.rotation.x += 0.0001F;
-        // mesh.rotation.y += 0.001F;
-        // mesh.rotation.z += 0.001F;
+        mesh.rotation.x += 0.001F;
+        mesh.rotation.y += 0.001F;
+        mesh.rotation.z += 0.001F;
 
         vec3_t transformedVertices[3];
         for (uint32_t j = 0U; j < 3U; ++j) {
@@ -183,6 +184,7 @@ void update(void) {
                 projectedVertex.y += winHeight / 2;
                 projectedTriangle.points[j] = projectedVertex;
             }
+            projectedTriangle.color = currentFace.color;
             array_push(trianglesToRender, projectedTriangle);
         }
     }
@@ -212,7 +214,8 @@ void render(void)
                 currentTriangle.points[0].x, currentTriangle.points[0].y,
                 currentTriangle.points[1].x, currentTriangle.points[1].y,
                 currentTriangle.points[2].x, currentTriangle.points[2].y,
-                0xFFDCDCDC);
+                currentTriangle.color
+                );
         }
 
         if (isVertices) {
