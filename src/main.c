@@ -185,7 +185,20 @@ void update(void) {
                 projectedTriangle.points[j] = projectedVertex;
             }
             projectedTriangle.color = currentFace.color;
+            projectedTriangle.avgDepth = (transformedVertices[0].z + transformedVertices[1].z + transformedVertices[2].z) / 3.00F;
             array_push(trianglesToRender, projectedTriangle);
+        }
+    }
+    // Sort the triangles to render by their avgDepth
+    uint32_t numTriangles = array_length(trianglesToRender);
+    for (uint32_t i = 0U; i < numTriangles; ++i) {
+        for (uint32_t j = i; j < numTriangles; ++j) {
+            if (trianglesToRender[i].avgDepth < trianglesToRender[j].avgDepth) {
+                // Swap the triangles positions in the array
+                traingle_t temp = trianglesToRender[i];
+                trianglesToRender[i] = trianglesToRender[j];
+                trianglesToRender[j] = temp;
+            }
         }
     }
 }
