@@ -110,3 +110,17 @@ vec3_t vec3Normalise(const vec3_t v) {
     const vec3_t result = vec3Div(v, vec3Length(v));
     return result;
 }
+
+vec4_t vec3ToVec4(const vec3_t v) {
+    const vec4_t result = {
+        v.x, v.y, v.z, 1.0F
+    };
+    return result;
+}
+
+vec3_t vec4ToVec3(const vec4_t v) {
+    const vec3_t result = {
+        v.x, v.y, v.z
+    };
+    return result;
+}

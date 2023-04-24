@@ -12,6 +12,14 @@ typedef struct {
     float z;
 }vec3_t;
 
+typedef struct {
+    float x;
+    float y;
+    float z;
+    float w;
+}vec4_t;
+
+
 //TODO::Vector Operations.
 float vec2Length(const vec2_t v);
 vec2_t vec2Add(const vec2_t v1, const vec2_t v2);
@@ -33,6 +41,9 @@ vec3_t vec3RotateX(vec3_t v, float angle);
 vec3_t vec3RotateY(vec3_t v, float angle);
 vec3_t vec3RotateZ(vec3_t v, float angle);
 vec3_t vec3Normalise(const vec3_t v);
+
+vec4_t vec3ToVec4(const vec3_t v);
+vec3_t vec4ToVec3(const vec4_t v);
 
 
 #endif

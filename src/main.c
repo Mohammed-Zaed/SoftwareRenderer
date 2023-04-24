@@ -7,6 +7,7 @@
 #include "display.h"
 #include "array.h"
 #include "vector.h"
+#include "matrix.h"
 #include "triangle.h"
 #include "mesh.h"
 
@@ -50,8 +51,8 @@ void setup(void)
         winHeight
     );
     
-    loadCubeMeshData();
-    // loadObjData("./assets/f22.obj");
+    // loadCubeMeshData();
+    loadObjData("./assets/F22.obj");
 }
 
 void processInput(void)
@@ -99,7 +100,14 @@ void processInput(void)
                 break;
 
                 case SDLK_5:
-                    //TODO:: Display both triangles and wireframe lines.
+                    // Display both only vertices. 
+                    isWireFrame = false;
+                    isVertices = true;
+                    isTriangle = false;
+                break;
+
+                case SDLK_6:
+                    // Display both triangles and wireframe lines and vertices.
                     isWireFrame = true;
                     isVertices = true;
                     isTriangle = true;
@@ -132,6 +140,13 @@ void update(void) {
     if (timeToWait > 0 && timeToWait <= FRAME_TARGET_TIME) {
         SDL_Delay(timeToWait);
     }
+    static float sx = 1.00F;
+    static float sy = 1.00F;
+    static float sz = 1.00F;
+
+    static float tx = 0.0F;
+    static float ty = 0.0F;
+    static float tz = 0.0F;
 
     uint32_t meshFacesCount = array_length(mesh.faces);
     for (uint32_t i = 0U; i < meshFacesCount; ++i) {
@@ -143,19 +158,31 @@ void update(void) {
         faceVertices[2] = mesh.vertices[currentFace.c - 1U];
 
         traingle_t projectedTriangle;
-        
-        mesh.rotation.x += 0.001F;
-        mesh.rotation.y += 0.001F;
-        mesh.rotation.z += 0.001F;
+        mesh.rotation.x += 0.0001F;
+        mesh.rotation.y += 0.0000F;
+        mesh.rotation.z += 0.0000F;
+
+        sx += 0.000001F;
+        sy += 0.000001F;
+        sz = 1.00F;
+                   
+        tx += 0.000001F;
+        ty += 0.000000F;
+        tz = 0.0F;
 
         vec3_t transformedVertices[3];
         for (uint32_t j = 0U; j < 3U; ++j) {
             vec3_t currentVertex = faceVertices[j];
-            currentVertex = vec3RotateX(currentVertex, mesh.rotation.x);
-            currentVertex = vec3RotateY(currentVertex, mesh.rotation.y);
-            currentVertex = vec3RotateZ(currentVertex, mesh.rotation.z);
-            currentVertex.z += 5.0F;
-            transformedVertices[j] = currentVertex;
+            mat4_t scalerMatrix = mat4MakeScale(sx, sy, sz); 
+            mat4_t translationMatrix = mat4MakeTranslate(tx, ty, tz);
+            vec4_t vec4CurrentVertex = mat4Mulvec4(scalerMatrix, vec3ToVec4(currentVertex));
+            vec4CurrentVertex = mat4Mulvec4(mat4MakeRotX(mesh.rotation.x), vec4CurrentVertex);
+            vec4CurrentVertex = mat4Mulvec4(mat4MakeRotY(mesh.rotation.y), vec4CurrentVertex);
+            vec4CurrentVertex = mat4Mulvec4(mat4MakeRotZ(mesh.rotation.z), vec4CurrentVertex);
+            vec4CurrentVertex = mat4Mulvec4(translationMatrix, vec4CurrentVertex);
+            vec4CurrentVertex.z += 5.0F;
+            vec4CurrentVertex = mat4Mulvec4(translationMatrix, vec4CurrentVertex);
+            transformedVertices[j] = vec4ToVec3(vec4CurrentVertex);
         }
         
         // Start of Back face culling for algorithm LHS
@@ -227,7 +254,7 @@ void render(void)
                 currentTriangle.points[0].x, currentTriangle.points[0].y,
                 currentTriangle.points[1].x, currentTriangle.points[1].y,
                 currentTriangle.points[2].x, currentTriangle.points[2].y,
-                currentTriangle.color
+                0xFFDCDCDC //currentTriangle.color
                 );
         }
 
