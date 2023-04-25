@@ -161,27 +161,42 @@ void update(void) {
         mesh.rotation.x += 0.0001F;
         mesh.rotation.y += 0.0000F;
         mesh.rotation.z += 0.0000F;
+        
+        if (sx >= 1.50F) {
+            sx = 1.00F;
+        } else {
+            sx += 0.000001F;
+        }
 
-        sx += 0.000001F;
-        sy += 0.000001F;
-        sz = 1.00F;
+        if (tx >= 0.50F) {
+            tx = 0.00F;
+        } else {
+            tx += 0.0001F;
+        }
+
+        sy = sx;
+        ty = tx;
                    
-        tx += 0.000001F;
-        ty += 0.000000F;
-        tz = 0.0F;
-
         vec3_t transformedVertices[3];
         for (uint32_t j = 0U; j < 3U; ++j) {
             vec3_t currentVertex = faceVertices[j];
+
+            vec4_t vec4CurrentVertex = vec3ToVec4(currentVertex);
             mat4_t scalerMatrix = mat4MakeScale(sx, sy, sz); 
             mat4_t translationMatrix = mat4MakeTranslate(tx, ty, tz);
-            vec4_t vec4CurrentVertex = mat4Mulvec4(scalerMatrix, vec3ToVec4(currentVertex));
-            vec4CurrentVertex = mat4Mulvec4(mat4MakeRotX(mesh.rotation.x), vec4CurrentVertex);
-            vec4CurrentVertex = mat4Mulvec4(mat4MakeRotY(mesh.rotation.y), vec4CurrentVertex);
-            vec4CurrentVertex = mat4Mulvec4(mat4MakeRotZ(mesh.rotation.z), vec4CurrentVertex);
-            vec4CurrentVertex = mat4Mulvec4(translationMatrix, vec4CurrentVertex);
+            mat4_t matRotX = mat4MakeRotX(mesh.rotation.x);
+            mat4_t matRotY = mat4MakeRotY(mesh.rotation.y);
+            mat4_t matRotZ = mat4MakeRotZ(mesh.rotation.z);
+
+            mat4_t worldMatrix = mat4MakeIdentity();
+            worldMatrix = mat4MulMat4(scalerMatrix, worldMatrix);
+            worldMatrix = mat4MulMat4(worldMatrix, matRotX);
+            worldMatrix = mat4MulMat4(worldMatrix, matRotY);
+            worldMatrix = mat4MulMat4(worldMatrix, matRotZ);
+            worldMatrix = mat4MulMat4(translationMatrix, worldMatrix);
+            vec4CurrentVertex = mat4Mulvec4(worldMatrix, vec4CurrentVertex);
             vec4CurrentVertex.z += 5.0F;
-            vec4CurrentVertex = mat4Mulvec4(translationMatrix, vec4CurrentVertex);
+            
             transformedVertices[j] = vec4ToVec3(vec4CurrentVertex);
         }
         

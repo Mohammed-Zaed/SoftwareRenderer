@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <math.h>
 #include "matrix.h"
 
@@ -50,8 +51,7 @@ mat4_t mat4MakeTranslate(const float tx, const float ty, const float tz) {
 }
 
 vec4_t mat4Mulvec4(const mat4_t m, const vec4_t v) {
-    const vec4_t result = {
-        v.x * m.m[0][0] + v.y * m.m[0][1] + v.z * m.m[0][2] + v.w * m.m[0][3],
+    const vec4_t result = { v.x * m.m[0][0] + v.y * m.m[0][1] + v.z * m.m[0][2] + v.w * m.m[0][3],
         v.x * m.m[1][0] + v.y * m.m[1][1] + v.z * m.m[1][2] + v.w * m.m[1][3],
         v.x * m.m[2][0] + v.y * m.m[2][1] + v.z * m.m[2][2] + v.w * m.m[2][3],
         v.x * m.m[3][0] + v.y * m.m[3][1] + v.z * m.m[3][2] + v.w * m.m[3][3],
@@ -95,5 +95,15 @@ mat4_t mat4MakeRotZ(const float angle) {
     result.m[1][0] = s;
     result.m[1][1] = c;
 
+    return result;
+}
+
+mat4_t mat4MulMat4(const mat4_t a, const mat4_t b) {
+    mat4_t result;
+    for (uint32_t i = 0U; i < 4U; ++i) {
+        for (uint32_t j = 0U; j < 4U; ++j) {
+            result.m[i][j] = a.m[i][0] * b.m[0][j] + a.m[i][1] * b.m[1][j] + a.m[i][2] * b.m[2][j] + a.m[i][3] * b.m[3][j];
+        }
+    }
     return result;
 }

@@ -15,6 +15,7 @@ vec4_t mat4Mulvec4(const mat4_t m, const vec4_t v);
 mat4_t mat4MakeRotX(const float angle);
 mat4_t mat4MakeRotY(const float angle);
 mat4_t mat4MakeRotZ(const float angle);
+mat4_t mat4MulMat4(const mat4_t a, const mat4_t b);
 
 
 #endif
