@@ -33,6 +33,7 @@ uint32_t prevFrameTime = 0;
 
 vec3_t cameraPosition = {0.0, 0.0, 0.0};
 traingle_t* trianglesToRender = NULL;
+mat4_t projectionMatrix;
 
 void setup(void)
 {
@@ -53,6 +54,12 @@ void setup(void)
     
     // loadCubeMeshData();
     loadObjData("./assets/F22.obj");
+
+    const float fov = M_PI / 3.0F;
+    const float aspect = (float)winHeight / (float)winWidth;
+    const float zNear = 0.1F;
+    const float zFar = 100.0F;
+    projectionMatrix = mat4MakePerspective(fov, aspect, zNear, zFar);
 }
 
 void processInput(void)
@@ -126,14 +133,6 @@ void processInput(void)
     }
 }
 
-vec2_t project(vec3_t point) {
-    vec2_t projectedPoint = {
-        (fovFactor * point.x) / point.z,
-        (fovFactor * point.y) / point.z
-    };
-    return projectedPoint;
-}
-
 void update(void) {
     uint32_t timeToWait = FRAME_TARGET_TIME - (SDL_GetTicks() - prevFrameTime);
 
@@ -162,20 +161,20 @@ void update(void) {
         mesh.rotation.y += 0.0000F;
         mesh.rotation.z += 0.0000F;
         
-        if (sx >= 1.50F) {
-            sx = 1.00F;
-        } else {
-            sx += 0.000001F;
-        }
+        // if (sx >= 1.50F) {
+        //     sx = 1.00F;
+        // } else {
+        //     sx += 0.000001F;
+        // }
 
-        if (tx >= 0.50F) {
-            tx = 0.00F;
-        } else {
-            tx += 0.0001F;
-        }
+        // if (tx >= 0.50F) {
+        //     tx = 0.00F;
+        // } else {
+        //     tx += 0.0001F;
+        // }
 
-        sy = sx;
-        ty = tx;
+        // sy = sx;
+        // ty = tx;
                    
         vec3_t transformedVertices[3];
         for (uint32_t j = 0U; j < 3U; ++j) {
@@ -221,7 +220,10 @@ void update(void) {
             for (uint32_t j = 0U; j < 3U; ++j)
             {
                 vec3_t currentVertex = transformedVertices[j];
-                vec2_t projectedVertex = project(currentVertex);
+                vec4_t tempVertex = mat4MulProjectionVec4(projectionMatrix, vec3ToVec4(currentVertex));
+                vec2_t projectedVertex = {tempVertex.x, tempVertex.y};
+                projectedVertex.x *= winWidth / 2;
+                projectedVertex.y *= winHeight / 2;
                 projectedVertex.x += winWidth / 2;
                 projectedVertex.y += winHeight / 2;
                 projectedTriangle.points[j] = projectedVertex;

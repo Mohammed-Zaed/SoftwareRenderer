@@ -107,3 +107,28 @@ mat4_t mat4MulMat4(const mat4_t a, const mat4_t b) {
     }
     return result;
 }
+
+mat4_t mat4MakePerspective(const float fov, const float aspect, const float zNear, const float zFar) {
+    //(h/w) * 1/tan(fov/2)                    0                       0                   0
+    //0                                       1/tan(fov/2)            0                   0
+    //0                                       0                       zFar/(zFar-zNear)   (-zFar * zNear)/(zFar-zNear)
+    //0                                       0                       1                   0
+    mat4_t result = {{{0}}};
+    result.m[0][0] = aspect * (1 / tan(fov/2));
+    result.m[1][1] = (1 / tan(fov/2));
+    result.m[2][2] = zFar / (zFar - zNear);
+    result.m[2][3] = (-zFar * zNear) / (zFar - zNear);
+    result.m[3][2] = 1;
+    
+    return result;
+}
+
+vec4_t mat4MulProjectionVec4(mat4_t projection, vec4_t v) {
+    vec4_t result = mat4Mulvec4(projection, v);
+    if (result.w != 0.0F) {
+        result.x = result.x / result.w;
+        result.y = result.y / result.w;
+        result.z = result.z / result.w;
+    }
+    return result;
+}

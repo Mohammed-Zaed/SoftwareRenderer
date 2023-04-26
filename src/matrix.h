@@ -16,6 +16,8 @@ mat4_t mat4MakeRotX(const float angle);
 mat4_t mat4MakeRotY(const float angle);
 mat4_t mat4MakeRotZ(const float angle);
 mat4_t mat4MulMat4(const mat4_t a, const mat4_t b);
+mat4_t mat4MakePerspective(const float fov, const float aspect, const float zNear, const float zFar);
+vec4_t mat4MulProjectionVec4(mat4_t projection, vec4_t v);
 
 
 #endif
