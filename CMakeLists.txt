@@ -19,6 +19,8 @@ set(SRC_FILES
     src/triangle.c
     src/mesh.h
     src/mesh.c
+    src/light.h
+    src/light.c
 
     src/main.c
 )

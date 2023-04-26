@@ -7,6 +7,7 @@
 #include "display.h"
 #include "array.h"
 #include "vector.h"
+#include "light.h"
 #include "matrix.h"
 #include "triangle.h"
 #include "mesh.h"
@@ -32,8 +33,11 @@ const uint32_t FRAME_TARGET_TIME = 1000 / 33;
 uint32_t prevFrameTime = 0;
 
 vec3_t cameraPosition = {0.0, 0.0, 0.0};
+light_t globalLightSource = {0.00, 000.00, 1.00};
 traingle_t* trianglesToRender = NULL;
 mat4_t projectionMatrix;
+uint32_t shadedColor = 0xFFFFFFFF;
+// uint32_t shadedColor = 0xFFCDCDCD;
 
 void setup(void)
 {
@@ -158,8 +162,8 @@ void update(void) {
 
         traingle_t projectedTriangle;
         mesh.rotation.x += 0.0001F;
-        mesh.rotation.y += 0.0000F;
-        mesh.rotation.z += 0.0000F;
+        // mesh.rotation.y += 0.0001F;
+        // mesh.rotation.z += 0.0001F;
         
         // if (sx >= 1.50F) {
         //     sx = 1.00F;
@@ -198,13 +202,30 @@ void update(void) {
             
             transformedVertices[j] = vec4ToVec3(vec4CurrentVertex);
         }
+
+        {
+        // Start of flat shading
+        // Three verticies of transformed triangle face
+        const vec3_t a = transformedVertices[0];
+        const vec3_t b = transformedVertices[1];
+        const vec3_t c = transformedVertices[2];
+
+        vec3_t ab = vec3Sub(b, a);
+        vec3_t ac = vec3Sub(c, a);
+        vec3_t normal = vec3Normalise(vec3Cross(ab, ac));
+        vec3_t lightRay = vec3Normalise(vec3Sub(globalLightSource.direction, a));
+        float illuminationFactor = vec3Dot(normal, lightRay);
+        currentFace.color = lightApplyIntensity(shadedColor,  illuminationFactor);
+        // End of flat shading algorithm
+        }
+
         
         // Start of Back face culling for algorithm LHS
         // Three verticies of transformed triangle face
         const vec3_t a = transformedVertices[0];
         const vec3_t b = transformedVertices[1];
         const vec3_t c = transformedVertices[2];
-        
+
         vec3_t ab = vec3Sub(b, a);
         vec3_t ac = vec3Sub(c, a);
         vec3_t normal = vec3Normalise(vec3Cross(ab, ac));
@@ -271,7 +292,7 @@ void render(void)
                 currentTriangle.points[0].x, currentTriangle.points[0].y,
                 currentTriangle.points[1].x, currentTriangle.points[1].y,
                 currentTriangle.points[2].x, currentTriangle.points[2].y,
-                0xFFDCDCDC //currentTriangle.color
+                currentTriangle.color//0xFFDCDCDC //currentTriangle.color
                 );
         }
 
