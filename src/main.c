@@ -9,6 +9,7 @@
 #include "vector.h"
 #include "light.h"
 #include "matrix.h"
+#include "texture.h"
 #include "triangle.h"
 #include "mesh.h"
 
@@ -23,7 +24,8 @@ uint32_t* colorBuffer = NULL;
 static bool isRunning = false;
 static bool isWireFrame = true;
 static bool isVertices = true;
-static bool isTriangle = true;
+static bool isTriangle = false;
+static bool isTexturedTriangle = true;
 static bool isBackFaceCulling = true;
 
 const uint32_t FPS = 33;
@@ -56,14 +58,15 @@ void setup(void)
         winHeight
     );
     
-    // loadCubeMeshData();
-    loadObjData("./assets/F22.obj");
-
     const float fov = M_PI / 3.0F;
     const float aspect = (float)winHeight / (float)winWidth;
     const float zNear = 0.1F;
     const float zFar = 100.0F;
     projectionMatrix = mat4MakePerspective(fov, aspect, zNear, zFar);
+
+    loadCubeMeshData();
+    // loadObjData("./assets/F22.obj");
+    meshTexture = (uint32_t*)RED_BRICK_TEXTUE;
 }
 
 void processInput(void)
@@ -87,6 +90,7 @@ void processInput(void)
                     isWireFrame = true;
                     isVertices = true;
                     isTriangle = false;
+                    isTexturedTriangle = false;
                 break;
 
                 case SDLK_2:
@@ -94,6 +98,7 @@ void processInput(void)
                     isWireFrame = true;
                     isVertices = false;
                     isTriangle = false;
+                    isTexturedTriangle = false;
                 break;
 
                 case SDLK_3:
@@ -101,6 +106,7 @@ void processInput(void)
                     isWireFrame = false;
                     isVertices = false;
                     isTriangle = true;
+                    isTexturedTriangle = false;
                 break;
 
                 case SDLK_4:
@@ -108,6 +114,7 @@ void processInput(void)
                     isWireFrame = true;
                     isVertices = false;
                     isTriangle = true;
+                    isTexturedTriangle = false;
                 break;
 
                 case SDLK_5:
@@ -115,6 +122,7 @@ void processInput(void)
                     isWireFrame = false;
                     isVertices = true;
                     isTriangle = false;
+                    isTexturedTriangle = false;
                 break;
 
                 case SDLK_6:
@@ -122,6 +130,21 @@ void processInput(void)
                     isWireFrame = true;
                     isVertices = true;
                     isTriangle = true;
+                    isTexturedTriangle = false;
+                break;
+                
+                case SDLK_7:
+                    isWireFrame = true;
+                    isVertices = true;
+                    isTriangle = false;
+                    isTexturedTriangle = true;
+                break;
+
+                case SDLK_8:
+                    isWireFrame = false;
+                    isVertices = false;
+                    isTriangle = false;
+                    isTexturedTriangle = true;
                 break;
 
                 case SDLK_c:
@@ -160,7 +183,6 @@ void update(void) {
         faceVertices[1] = mesh.vertices[currentFace.b - 1U];
         faceVertices[2] = mesh.vertices[currentFace.c - 1U];
 
-        traingle_t projectedTriangle;
         mesh.rotation.x += 0.0001F;
         // mesh.rotation.y += 0.0001F;
         // mesh.rotation.z += 0.0001F;
@@ -186,10 +208,10 @@ void update(void) {
 
             vec4_t vec4CurrentVertex = vec3ToVec4(currentVertex);
             mat4_t scalerMatrix = mat4MakeScale(sx, sy, sz); 
-            mat4_t translationMatrix = mat4MakeTranslate(tx, ty, tz);
             mat4_t matRotX = mat4MakeRotX(mesh.rotation.x);
             mat4_t matRotY = mat4MakeRotY(mesh.rotation.y);
             mat4_t matRotZ = mat4MakeRotZ(mesh.rotation.z);
+            mat4_t translationMatrix = mat4MakeTranslate(tx, ty, tz);
 
             mat4_t worldMatrix = mat4MakeIdentity();
             worldMatrix = mat4MulMat4(scalerMatrix, worldMatrix);
@@ -236,6 +258,8 @@ void update(void) {
 
         // Culling is Enabled when back face culling is on. 
         bool renderFace = !cullFace || !isBackFaceCulling;
+        
+        vec2_t projectedPoints[3];
 
         if (renderFace) {
             for (uint32_t j = 0U; j < 3U; ++j)
@@ -243,14 +267,26 @@ void update(void) {
                 vec3_t currentVertex = transformedVertices[j];
                 vec4_t tempVertex = mat4MulProjectionVec4(projectionMatrix, vec3ToVec4(currentVertex));
                 vec2_t projectedVertex = {tempVertex.x, tempVertex.y};
+                projectedVertex.y *= -1.0F;
                 projectedVertex.x *= winWidth / 2;
                 projectedVertex.y *= winHeight / 2;
                 projectedVertex.x += winWidth / 2;
                 projectedVertex.y += winHeight / 2;
-                projectedTriangle.points[j] = projectedVertex;
+                projectedPoints[j] = projectedVertex;
             }
-            projectedTriangle.color = currentFace.color;
-            projectedTriangle.avgDepth = (transformedVertices[0].z + transformedVertices[1].z + transformedVertices[2].z) / 3.00F;
+            tex2_t texCoord[3] = {
+                {currentFace.uva.u, currentFace.uva.v},
+                {currentFace.uvb.u, currentFace.uvb.v},
+                {currentFace.uvc.u, currentFace.uvc.v}
+            };
+            
+            traingle_t projectedTriangle = {
+                .points = {projectedPoints[0], projectedPoints[1], projectedPoints[2]},
+                .texCoord = {texCoord[0], texCoord[1], texCoord[2]},
+                .color = currentFace.color,
+                .avgDepth = (transformedVertices[0].z + transformedVertices[1].z + transformedVertices[2].z) / 3.00F
+            };
+
             array_push(trianglesToRender, projectedTriangle);
         }
     }
@@ -301,6 +337,15 @@ void render(void)
             drawFillRectangle(currentTriangle.points[1].x, currentTriangle.points[1].y, 3U, 3U, 0xFFFF0000);
             drawFillRectangle(currentTriangle.points[2].x, currentTriangle.points[2].y, 3U, 3U, 0xFFFF0000);
         }
+        
+        if (isTexturedTriangle) {
+            drawTexturedTriangle(
+                currentTriangle.points[0].x, currentTriangle.points[0].y, currentTriangle.texCoord[0].u, currentTriangle.texCoord[0].v,
+                currentTriangle.points[1].x, currentTriangle.points[1].y, currentTriangle.texCoord[1].u, currentTriangle.texCoord[1].v,
+                currentTriangle.points[2].x, currentTriangle.points[2].y, currentTriangle.texCoord[2].u, currentTriangle.texCoord[2].v,
+                meshTexture
+                );
+        }
     }
     array_free(trianglesToRender);
     trianglesToRender = NULL;
@@ -323,7 +368,6 @@ int main(void)
     setup();
 
     while(isRunning) {
-        SDL_Delay(FPS);
         processInput();
         render();
         renderColorBuffer();

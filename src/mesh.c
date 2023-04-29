@@ -22,24 +22,23 @@ vec3_t cubeVertices[CUBE_VERTICES_COUNT] = {
     {-1.0F, -1.0F,  1.0F}  //8
 };
 face_t cubeFaces[CUBE_FACES_COUNT] = {
-    //front
-    {1U, 2U, 3U, 0xFFFF0000},
-    {1U, 3U, 4U, 0xFFFF0000},
-    //right
-    {4U, 3U, 5U, 0xFF00FF00},
-    {4U, 5U, 6U, 0xFF00FF00},
-    //back
-    {6U, 5U, 7U, 0xFF0000FF},
-    {6U, 7U, 8U, 0xFF0000FF},
-    //left
-    {8U, 7U, 2U, 0xFFFFFF00},
-    {8U, 2U, 1U, 0xFFFFFF00},
-    //top
-    {2U, 7U, 5U, 0xFF00FFFF},
-    {2U, 5U, 3U, 0xFF00FFFF},
-    //bottom
-    {6U, 8U, 1U, 0xFFCDCDCD},
-    {6U, 1U, 4U, 0xFFCDCDCD}
+    { .a = 1, .b = 2, .c = 3, .uva = { 0, 0 }, .uvb = { 0, 1 }, .uvc = { 1, 1 }, .color = 0xFFFFFFFF },
+    { .a = 1, .b = 3, .c = 4, .uva = { 0, 0 }, .uvb = { 1, 1 }, .uvc = { 1, 0 }, .color = 0xFFFFFFFF },
+    // right
+    { .a = 4, .b = 3, .c = 5, .uva = { 0, 0 }, .uvb = { 0, 1 }, .uvc = { 1, 1 }, .color = 0xFFFFFFFF },
+    { .a = 4, .b = 5, .c = 6, .uva = { 0, 0 }, .uvb = { 1, 1 }, .uvc = { 1, 0 }, .color = 0xFFFFFFFF },
+    // back
+    { .a = 6, .b = 5, .c = 7, .uva = { 0, 0 }, .uvb = { 0, 1 }, .uvc = { 1, 1 }, .color = 0xFFFFFFFF },
+    { .a = 6, .b = 7, .c = 8, .uva = { 0, 0 }, .uvb = { 1, 1 }, .uvc = { 1, 0 }, .color = 0xFFFFFFFF },
+    // left
+    { .a = 8, .b = 7, .c = 2, .uva = { 0, 0 }, .uvb = { 0, 1 }, .uvc = { 1, 1 }, .color = 0xFFFFFFFF },
+    { .a = 8, .b = 2, .c = 1, .uva = { 0, 0 }, .uvb = { 1, 1 }, .uvc = { 1, 0 }, .color = 0xFFFFFFFF },
+    // top
+    { .a = 2, .b = 7, .c = 5, .uva = { 0, 0 }, .uvb = { 0, 1 }, .uvc = { 1, 1 }, .color = 0xFFFFFFFF },
+    { .a = 2, .b = 5, .c = 3, .uva = { 0, 0 }, .uvb = { 1, 1 }, .uvc = { 1, 0 }, .color = 0xFFFFFFFF },
+    // bottom
+    { .a = 6, .b = 8, .c = 1, .uva = { 0, 0 }, .uvb = { 0, 1 }, .uvc = { 1, 1 }, .color = 0xFFFFFFFF },
+    { .a = 6, .b = 1, .c = 4, .uva = { 0, 0 }, .uvb = { 1, 1 }, .uvc = { 1, 0 }, .color = 0xFFFFFFFF }
 };
 
 void loadCubeMeshData(void) {

@@ -21,6 +21,8 @@ set(SRC_FILES
     src/mesh.c
     src/light.h
     src/light.c
+    src/texture.h
+    src/texture.c
 
     src/main.c
 )
