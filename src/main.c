@@ -184,8 +184,8 @@ void update(void) {
         faceVertices[2] = mesh.vertices[currentFace.c - 1U];
 
         mesh.rotation.x += 0.0001F;
-        // mesh.rotation.y += 0.0001F;
-        // mesh.rotation.z += 0.0001F;
+        mesh.rotation.y += 0.0001F;
+        mesh.rotation.z += 0.0001F;
         
         // if (sx >= 1.50F) {
         //     sx = 1.00F;
@@ -259,20 +259,19 @@ void update(void) {
         // Culling is Enabled when back face culling is on. 
         bool renderFace = !cullFace || !isBackFaceCulling;
         
-        vec2_t projectedPoints[3];
+        vec4_t projectedPoints[3];
 
         if (renderFace) {
             for (uint32_t j = 0U; j < 3U; ++j)
             {
                 vec3_t currentVertex = transformedVertices[j];
                 vec4_t tempVertex = mat4MulProjectionVec4(projectionMatrix, vec3ToVec4(currentVertex));
-                vec2_t projectedVertex = {tempVertex.x, tempVertex.y};
-                projectedVertex.y *= -1.0F;
-                projectedVertex.x *= winWidth / 2;
-                projectedVertex.y *= winHeight / 2;
-                projectedVertex.x += winWidth / 2;
-                projectedVertex.y += winHeight / 2;
-                projectedPoints[j] = projectedVertex;
+                tempVertex.y *= -1.0F;
+                tempVertex.x *= winWidth / 2;
+                tempVertex.y *= winHeight / 2;
+                tempVertex.x += winWidth / 2;
+                tempVertex.y += winHeight / 2;
+                projectedPoints[j] = tempVertex;
             }
             tex2_t texCoord[3] = {
                 {currentFace.uva.u, currentFace.uva.v},
@@ -340,9 +339,9 @@ void render(void)
         
         if (isTexturedTriangle) {
             drawTexturedTriangle(
-                currentTriangle.points[0].x, currentTriangle.points[0].y, currentTriangle.texCoord[0].u, currentTriangle.texCoord[0].v,
-                currentTriangle.points[1].x, currentTriangle.points[1].y, currentTriangle.texCoord[1].u, currentTriangle.texCoord[1].v,
-                currentTriangle.points[2].x, currentTriangle.points[2].y, currentTriangle.texCoord[2].u, currentTriangle.texCoord[2].v,
+                currentTriangle.points[0].x, currentTriangle.points[0].y, currentTriangle.points[0].z, currentTriangle.points[0].w, currentTriangle.texCoord[0].u, currentTriangle.texCoord[0].v,
+                currentTriangle.points[1].x, currentTriangle.points[1].y, currentTriangle.points[1].z, currentTriangle.points[1].w, currentTriangle.texCoord[1].u, currentTriangle.texCoord[1].v,
+                currentTriangle.points[2].x, currentTriangle.points[2].y, currentTriangle.points[2].z, currentTriangle.points[2].w, currentTriangle.texCoord[2].u, currentTriangle.texCoord[2].v,
                 meshTexture
                 );
         }

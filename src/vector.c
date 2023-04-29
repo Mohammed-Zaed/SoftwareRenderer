@@ -118,6 +118,13 @@ vec4_t vec3ToVec4(const vec3_t v) {
     return result;
 }
 
+vec2_t vec4ToVec2(const vec4_t v) {
+    const vec2_t result = {
+        v.x, v.y
+    };
+    return result;
+}
+
 vec3_t vec4ToVec3(const vec4_t v) {
     const vec3_t result = {
         v.x, v.y, v.z

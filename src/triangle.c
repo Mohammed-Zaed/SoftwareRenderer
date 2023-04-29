@@ -89,15 +89,17 @@ void drawTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, in
 }
 
 void drawTexturedTriangle(
-        int32_t x0, int32_t y0, float u0, float v0,
-        int32_t x1, int32_t y1, float u1, float v1,
-        int32_t x2, int32_t y2, float u2, float v2,
+        int32_t x0, int32_t y0, float z0, float w0, float u0, float v0,
+        int32_t x1, int32_t y1, float z1, float w1, float u1, float v1,
+        int32_t x2, int32_t y2, float z2, float w2, float u2, float v2,
         uint32_t* texture
 ) {
     // Sort vertices by y-coordinates ascending order (y0 < y1 < y2)
     if (y0 > y1) {
         int32Swap(&y0, &y1);
         int32Swap(&x0, &x1);
+        floatSwap(&z0, &z1);
+        floatSwap(&w0, &w1);
         floatSwap(&u0, &u1);
         floatSwap(&v0, &v1);
     }
@@ -105,6 +107,8 @@ void drawTexturedTriangle(
     if (y1 > y2) {
         int32Swap(&y1, &y2);
         int32Swap(&x1, &x2);
+        floatSwap(&z1, &z2);
+        floatSwap(&w1, &w2);
         floatSwap(&u1, &u2);
         floatSwap(&v1, &v2);
     }
@@ -112,13 +116,15 @@ void drawTexturedTriangle(
     if (y0 > y1) {
         int32Swap(&y0, &y1);
         int32Swap(&x0, &x1);
+        floatSwap(&z0, &z1);
+        floatSwap(&w0, &w1);
         floatSwap(&u0, &u1);
         floatSwap(&v0, &v1);
     }
     
-    vec2_t a = {x0, y0};
-    vec2_t b = {x1, y1};
-    vec2_t c = {x2, y2};
+    vec4_t a = {x0, y0, z0, w0};
+    vec4_t b = {x1, y1, z1, w1};
+    vec4_t c = {x2, y2, z2, w2};
 
     tex2_t ta = {u0, v0};
     tex2_t tb = {u1, v1};
@@ -138,7 +144,7 @@ void drawTexturedTriangle(
         
         for (int32_t x = xStart; x < xEnd; ++x)  {
             vec2_t p = {x, y};
-            drawTexel(p, a, ta, b, tb, c, tc, meshTexture); 
+            drawTexel(p, a, ta, b, tb, c, tc, texture); 
         }
     }
 
@@ -156,7 +162,7 @@ void drawTexturedTriangle(
         
         for (int32_t x = xStart; x < xEnd; ++x)  {
             vec2_t p = {x, y};
-            drawTexel(p, a, ta, b, tb, c, tc, meshTexture); 
+            drawTexel(p, a, ta, b, tb, c, tc, texture); 
         }
     }
 }
@@ -182,17 +188,21 @@ vec3_t baryCentricWeights(vec2_t p, vec2_t a, vec2_t b, vec2_t c) {
     return weights;
 }
 
-void drawTexel(vec2_t p, vec2_t a, tex2_t ta, vec2_t b, tex2_t tb, vec2_t c, tex2_t tc, uint32_t* texture) {
+void drawTexel(vec2_t p, vec4_t a, tex2_t ta, vec4_t b, tex2_t tb, vec4_t c, tex2_t tc, uint32_t* texture) {
 
-    vec3_t weigths = baryCentricWeights(p, a, b, c);
+    vec2_t vec2a = vec4ToVec2(a);
+    vec2_t vec2b = vec4ToVec2(b);
+    vec2_t vec2c = vec4ToVec2(c);
+    vec3_t weigths = baryCentricWeights(p, vec2a, vec2b, vec2c);
 
     const float alpha = weigths.x;
     const float beta = weigths.y;
     const float gamma = weigths.z;
-    
-    const float interpolatedU = ta.u * alpha + tb.u * beta + tc.u * gamma;
-    const float interpolatedY = ta.v * alpha + tb.v * beta + tc.v * gamma;
-    
+
+    const float interploated1byW = (1.0 / a.w) * alpha + (1.0 / b.w) * beta + (1.0 / c.w) * gamma;
+    const float interpolatedU = ((ta.u / a.w) * alpha + (tb.u / b.w) * beta + (tc.u / c.w) * gamma) / interploated1byW;
+    const float interpolatedY = ((ta.v / a.w) * alpha + (tb.v / b.w) * beta + (tc.v / c.w) * gamma) / interploated1byW;
+
     const int32_t tx = abs((int32_t)(interpolatedU * textureWidth));
     const int32_t ty = abs((int32_t)(interpolatedY * textureHeight));
     
