@@ -38,7 +38,9 @@ uint32_t prevFrameTime = 0;
 
 vec3_t cameraPosition = {0.0, 0.0, 0.0};
 light_t globalLightSource = {0.00, 000.00, 1.00};
-traingle_t* trianglesToRender = NULL;
+const uint32_t MAX_TRIANGLES_PER_MESH = 10000U;
+traingle_t trianglesToRender[MAX_TRIANGLES_PER_MESH];
+uint32_t trianglesToRenderForCurrentFrame;
 mat4_t projectionMatrix;
 uint32_t shadedColor = 0xFFFFFFFF;
 // uint32_t shadedColor = 0xFFCDCDCD;
@@ -177,6 +179,7 @@ void update(void) {
     static float ty = 0.0F;
     static float tz = 0.0F;
 
+    trianglesToRenderForCurrentFrame = 0U;
     uint32_t meshFacesCount = array_length(mesh.faces);
     for (uint32_t i = 0U; i < meshFacesCount; ++i) {
         face_t currentFace = mesh.faces[i];
@@ -287,8 +290,9 @@ void update(void) {
                 .texCoord = {texCoord[0], texCoord[1], texCoord[2]},
                 .color = currentFace.color,
             };
-
-            array_push(trianglesToRender, projectedTriangle);
+            if (trianglesToRenderForCurrentFrame < MAX_TRIANGLES_PER_MESH) {
+                trianglesToRender[trianglesToRenderForCurrentFrame++] = projectedTriangle;
+            }
         }
     }
 }
@@ -299,7 +303,7 @@ void render(void)
     clearColorBuffer(0x00);
     update();
 
-    const int32_t numOfTriangles = array_length(trianglesToRender);
+    const int32_t numOfTriangles = trianglesToRenderForCurrentFrame;
     for (uint32_t i = 0U; i < numOfTriangles; ++i) {
         traingle_t currentTriangle = trianglesToRender[i];
         if (isWireFrame) {
@@ -335,8 +339,7 @@ void render(void)
                 );
         }
     }
-    array_free(trianglesToRender);
-    trianglesToRender = NULL;
+    trianglesToRenderForCurrentFrame = 0;
     renderColorBuffer();
     SDL_RenderPresent(renderer);
     clearZBuffer();
