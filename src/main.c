@@ -12,6 +12,7 @@
 #include "texture.h"
 #include "triangle.h"
 #include "mesh.h"
+#include "upng.h"
 
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
@@ -52,7 +53,7 @@ void setup(void)
 
     colorBufferTexture = SDL_CreateTexture(
         renderer,
-        SDL_PIXELFORMAT_ARGB8888,
+        SDL_PIXELFORMAT_RGBA32,
         SDL_TEXTUREACCESS_STREAMING,
         winWidth,
         winHeight
@@ -66,7 +67,7 @@ void setup(void)
 
     loadCubeMeshData();
     // loadObjData("./assets/F22.obj");
-    meshTexture = (uint32_t*)RED_BRICK_TEXTUE;
+    loadPngTextureData("./assets/cube.png");
 }
 
 void processInput(void)
@@ -183,9 +184,9 @@ void update(void) {
         faceVertices[1] = mesh.vertices[currentFace.b - 1U];
         faceVertices[2] = mesh.vertices[currentFace.c - 1U];
 
-        mesh.rotation.x += 0.0001F;
+        // mesh.rotation.x += 0.0001F;
         mesh.rotation.y += 0.0001F;
-        mesh.rotation.z += 0.0001F;
+        // mesh.rotation.z += 0.0001F;
         
         // if (sx >= 1.50F) {
         //     sx = 1.00F;

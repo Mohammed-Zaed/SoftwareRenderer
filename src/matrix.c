@@ -78,9 +78,9 @@ mat4_t mat4MakeRotY(const float angle) {
     mat4_t result = mat4MakeIdentity();
 
     result.m[0][0] = c;
-    result.m[0][1] = s;
-    result.m[3][1] = -s;
-    result.m[3][2] = c;
+    result.m[0][2] = s;
+    result.m[2][0] = -s;
+    result.m[2][2] = c;
 
     return result;
 }

@@ -10,6 +10,8 @@ set(SRC_FILES
 
     src/array.h
     src/array.c
+    src/upng.h
+    src/upng.c
 
     src/vector.h
     src/vector.c
