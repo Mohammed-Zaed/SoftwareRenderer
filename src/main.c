@@ -65,8 +65,8 @@ void setup(void)
     const float zFar = 100.0F;
     projectionMatrix = mat4MakePerspective(fov, aspect, zNear, zFar);
 
-    loadCubeMeshData();
-    // loadObjData("./assets/F22.obj");
+    // loadCubeMeshData();
+    loadObjData("./assets/cube.obj");
     loadPngTextureData("./assets/cube.png");
 }
 
@@ -180,9 +180,9 @@ void update(void) {
         face_t currentFace = mesh.faces[i];
         vec3_t faceVertices[3];
 
-        faceVertices[0] = mesh.vertices[currentFace.a - 1U];
-        faceVertices[1] = mesh.vertices[currentFace.b - 1U];
-        faceVertices[2] = mesh.vertices[currentFace.c - 1U];
+        faceVertices[0] = mesh.vertices[currentFace.a];
+        faceVertices[1] = mesh.vertices[currentFace.b];
+        faceVertices[2] = mesh.vertices[currentFace.c];
 
         // mesh.rotation.x += 0.0001F;
         mesh.rotation.y += 0.0001F;

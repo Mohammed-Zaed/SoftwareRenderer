@@ -61,11 +61,18 @@ void loadObjData(const char* filePath) {
         fprintf(stderr, "Error: File open failed.\n");
     } else {
         char line[1024];
+        tex2_t* texCoords = NULL;
         while(fgets(line, 1024, file)) {
             if (strncmp(line, "v ", 2) == 0) {
                 vec3_t vertex;
                 sscanf(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z);
                 array_push(mesh.vertices, vertex);
+            }
+
+            if (strncmp(line, "vt ", 3) == 0) {
+                tex2_t texCoord;
+                sscanf(line, "vt %f %f ", &texCoord.u, &texCoord.v);
+                array_push(texCoords, texCoord);
             }
 
             if (strncmp(line, "f ", 2) == 0) {
@@ -79,10 +86,18 @@ void loadObjData(const char* filePath) {
                     &vertexIndices[2], &textureIndices[2], &normalIndices[2]
                     );
 
-                face_t face = {vertexIndices[0], vertexIndices[1], vertexIndices[2]};
+                face_t face = {
+                    .a = vertexIndices[0] - 1, 
+                    .b = vertexIndices[1] - 1, 
+                    .c = vertexIndices[2] - 1,
+                    .uva = texCoords[textureIndices[0] - 1],
+                    .uvb = texCoords[textureIndices[1] - 1],
+                    .uvc = texCoords[textureIndices[2] - 1],
+                    };
                 array_push(mesh.faces, face);
             }
         }
+        array_free(texCoords);
         fclose(file);
     }
 

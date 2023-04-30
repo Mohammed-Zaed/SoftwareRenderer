@@ -126,9 +126,14 @@ void drawTexturedTriangle(
     vec4_t b = {x1, y1, z1, w1};
     vec4_t c = {x2, y2, z2, w2};
 
+    v0 = 1 - v0;
+    v1 = 1 - v1;
+    v2 = 1 - v2;
+
     tex2_t ta = {u0, v0};
     tex2_t tb = {u1, v1};
     tex2_t tc = {u2, v2};
+    
     
     //Draw the flat-bottom of Triangle
     float slope1 = ((y1 - y0) != 0) ? ((float)(x1 - x0) / abs(y1 - y0)) : 0.0F;
