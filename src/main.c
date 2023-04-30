@@ -361,6 +361,8 @@ void freeResources(void) {
     array_free(mesh.vertices);
     array_free(mesh.faces);
     free(colorBuffer);
+    upng_free(pngTexture);
+    meshTexture = NULL;
 }
 
 int main(void)
