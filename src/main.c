@@ -286,22 +286,9 @@ void update(void) {
                 .points = {projectedPoints[0], projectedPoints[1], projectedPoints[2]},
                 .texCoord = {texCoord[0], texCoord[1], texCoord[2]},
                 .color = currentFace.color,
-                .avgDepth = (transformedVertices[0].z + transformedVertices[1].z + transformedVertices[2].z) / 3.00F
             };
 
             array_push(trianglesToRender, projectedTriangle);
-        }
-    }
-    // Sort the triangles to render by their avgDepth
-    uint32_t numTriangles = array_length(trianglesToRender);
-    for (uint32_t i = 0U; i < numTriangles; ++i) {
-        for (uint32_t j = i; j < numTriangles; ++j) {
-            if (trianglesToRender[i].avgDepth < trianglesToRender[j].avgDepth) {
-                // Swap the triangles positions in the array
-                traingle_t temp = trianglesToRender[i];
-                trianglesToRender[i] = trianglesToRender[j];
-                trianglesToRender[j] = temp;
-            }
         }
     }
 }
@@ -312,7 +299,6 @@ void render(void)
     clearColorBuffer(0x00);
     update();
 
-#if 1
     const int32_t numOfTriangles = array_length(trianglesToRender);
     for (uint32_t i = 0U; i < numOfTriangles; ++i) {
         traingle_t currentTriangle = trianglesToRender[i];
@@ -327,10 +313,10 @@ void render(void)
 
         if (isTriangle) {
             drawFilledTriangle(
-                currentTriangle.points[0].x, currentTriangle.points[0].y,
-                currentTriangle.points[1].x, currentTriangle.points[1].y,
-                currentTriangle.points[2].x, currentTriangle.points[2].y,
-                currentTriangle.color//0xFFDCDCDC //currentTriangle.color
+                currentTriangle.points[0].x, currentTriangle.points[0].y, currentTriangle.points[0].z, currentTriangle.points[0].w,
+                currentTriangle.points[1].x, currentTriangle.points[1].y, currentTriangle.points[1].z, currentTriangle.points[1].w,
+                currentTriangle.points[2].x, currentTriangle.points[2].y, currentTriangle.points[2].z, currentTriangle.points[2].w,
+                currentTriangle.color 
                 );
         }
 
@@ -351,10 +337,6 @@ void render(void)
     }
     array_free(trianglesToRender);
     trianglesToRender = NULL;
-#else
-    drawTriangle(300, 100, 50,400, 500, 700, 0xFF00FF00);
-    drawFilledTriangle(300, 100, 50,400, 500, 700, 0xFF0000FF);
-#endif
     renderColorBuffer();
     SDL_RenderPresent(renderer);
     clearZBuffer();

@@ -16,79 +16,79 @@ static void floatSwap(float* a, float *b) {
     *b = temp;
 }
 
-static void drawFillFlatBottomTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color) {
-    // Start from the top
-    // Calculate two slopes
-    float deltaX1PerY1 = (float)(x1 - x0) / (float)(y1 - y0);
-    float deltaX2PerY2 = (float)(x2 - x0) / (float)(y2 - y0);
-    
-    // Start xStart and xEnd from the top vertex
-    float xStart = x0;
-    float xEnd = x0;
-
-    // Loop all the scan lines from top to bottom
-    for (int32_t y = y0; y <= y2; ++y) {
-        drawLine(xStart, y, xEnd, y, color);
-        xStart += deltaX1PerY1;
-        xEnd += deltaX2PerY2;
-    }
+void drawTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color) {
+    drawLine(x0, y0, x1, y1, color);
+    drawLine(x1, y1, x2, y2, color);
+    drawLine(x2, y2, x0, y0, color);
 }
 
-static void drawFillFlatTopTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color) {
-    // Start from the bottom
-    // Calculate two slopes
-    float deltaX0PerY0 = (float)(x2 - x0) / (float)(y2 - y0);
-    float deltaX1PerY1 = (float)(x2 - x1) / (float)(y2 - y1);
-    
-    // Start xStart and xEnd from the bottom vertex
-    float xStart = x2;
-    float xEnd = x2;
-
-    // Loop all the scan lines from bottom to top
-    for (int32_t y = y2; y >= y0; --y) {
-        drawLine(xStart, y, xEnd, y, color);
-        xStart -= deltaX0PerY0;
-        xEnd -= deltaX1PerY1;
-    }
-
-
-}
-
-void drawFilledTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color) {
+void drawFilledTriangle(
+        int32_t x0, int32_t y0, float z0, float w0,
+        int32_t x1, int32_t y1, float z1, float w1,
+        int32_t x2, int32_t y2, float z2, float w2,
+        uint32_t color 
+) {
     // Sort vertices by y-coordinates ascending order (y0 < y1 < y2)
     if (y0 > y1) {
         int32Swap(&y0, &y1);
         int32Swap(&x0, &x1);
+        floatSwap(&z0, &z1);
+        floatSwap(&w0, &w1);
     }
     
     if (y1 > y2) {
         int32Swap(&y1, &y2);
         int32Swap(&x1, &x2);
+        floatSwap(&z1, &z2);
+        floatSwap(&w1, &w2);
     }
 
     if (y0 > y1) {
         int32Swap(&y0, &y1);
         int32Swap(&x0, &x1);
+        floatSwap(&z0, &z1);
+        floatSwap(&w0, &w1);
     }
     
-    if (y1 == y2) {
-        drawFillFlatBottomTriangle(x0, y0, x1, y1, x2, y2, color);
-    } else if (y0 == y1) {
-        drawFillFlatTopTriangle(x0, y0, x1, y1, x2, y2, color);
-    } else {
-        // Split the triangle Flat bottom and Flat Top
-        // Calculate the new vertex (Mx. My) using tirangle similarity
-        int32_t My = y1;
-        int32_t Mx = ((float)((x2 - x0) * (y1 - y0)) / (float)(y2 - y0)) + x0;
-        drawFillFlatBottomTriangle(x0, y0, x1, y1, Mx, My, color);
-        drawFillFlatTopTriangle(x1, y1, Mx, My, x2, y2, color);
+    vec4_t a = {x0, y0, z0, w0};
+    vec4_t b = {x1, y1, z1, w1};
+    vec4_t c = {x2, y2, z2, w2};
+    
+    //Draw the flat-bottom of Triangle
+    float slope1 = ((y1 - y0) != 0) ? ((float)(x1 - x0) / abs(y1 - y0)) : 0.0F;
+    float slope2 = ((y2 - y0) != 0) ? ((float)(x2 - x0) / abs(y2 - y0)) : 0.0F;
+    
+    for (int32_t y = y0; y < y1; ++y) {
+        int32_t xStart = x1 + (y - y1) * slope1;
+        int32_t xEnd = x0 + (y - y0) * slope2;
+        
+        if (xEnd < xStart) {
+            int32Swap(&xStart, &xEnd);
+        }
+        
+        for (int32_t x = xStart; x < xEnd; ++x) {
+            vec2_t p = {x, y};
+            drawTrianglePixel(p, a, b, c, color); 
+        }
     }
-}
 
-void drawTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color) {
-    drawLine(x0, y0, x1, y1, color);
-    drawLine(x1, y1, x2, y2, color);
-    drawLine(x2, y2, x0, y0, color);
+    //Draw the flat-top of Triangle
+    slope1 = ((y2 - y1) != 0) ? ((float)(x2 - x1) / abs(y2 - y1)) : 0.0F;
+    slope2 = ((y2 - y0) != 0) ? ((float)(x2 - x0) / abs(y2 - y0)) : 0.0F;
+    
+    for (int32_t y = y1; y < y2; ++y) {
+        int32_t xStart = x1 + (y - y1) * slope1;
+        int32_t xEnd = x0 + (y - y0) * slope2;
+        
+        if (xEnd < xStart) {
+            int32Swap(&xStart, &xEnd);
+        }
+        
+        for (int32_t x = xStart; x < xEnd; ++x)  {
+            vec2_t p = {x, y};
+            drawTrianglePixel(p, a, b, c, color); 
+        }
+    }
 }
 
 void drawTexturedTriangle(
@@ -150,7 +150,7 @@ void drawTexturedTriangle(
             int32Swap(&xStart, &xEnd);
         }
         
-        for (int32_t x = xStart; x < xEnd; ++x)  {
+        for (int32_t x = xStart; x < xEnd; ++x) {
             vec2_t p = {x, y};
             drawTexel(p, a, ta, b, tb, c, tc, texture); 
         }
@@ -219,6 +219,29 @@ void drawTexel(vec2_t p, vec4_t a, tex2_t ta, vec4_t b, tex2_t tb, vec4_t c, tex
 
     if (temp1byW < *zValue) {
         drawPixel(p.x, p.y, texture[(ty * textureWidth) + tx]);
+        *zValue = temp1byW;
+    }
+}
+
+
+void drawTrianglePixel(vec2_t p, vec4_t a, vec4_t b, vec4_t c, uint32_t color) {
+
+    vec2_t vec2a = vec4ToVec2(a);
+    vec2_t vec2b = vec4ToVec2(b);
+    vec2_t vec2c = vec4ToVec2(c);
+    vec3_t weigths = baryCentricWeights(p, vec2a, vec2b, vec2c);
+
+    const float alpha = weigths.x;
+    const float beta = weigths.y;
+    const float gamma = weigths.z;
+
+    const float interploated1byW = (1.0 / a.w) * alpha + (1.0 / b.w) * beta + (1.0 / c.w) * gamma;
+
+    float * zValue = &zBuffer[((int32_t)p.y *  winWidth) + (int32_t)p.x]; 
+    float temp1byW = 1.0 - interploated1byW;
+
+    if (temp1byW < *zValue) {
+        drawPixel(p.x, p.y, color);
         *zValue = temp1byW;
     }
 }
