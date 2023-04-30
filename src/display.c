@@ -9,6 +9,7 @@ extern SDL_Renderer* renderer;
 extern SDL_Texture* colorBufferTexture;
 
 extern uint32_t* colorBuffer;
+extern float* zBuffer;
 extern uint32_t winWidth;
 extern uint32_t winHeight;
 
@@ -121,5 +122,13 @@ void drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color) {
         drawPixel(round(currX), round(currY), color);
         currX += xInc;
         currY += yInc;
+    }
+}
+
+void clearZBuffer(void) {
+    for (uint32_t y = 0U; y < winHeight; ++y) {
+        for (uint32_t x = 0U; x < winWidth; ++x) {
+            zBuffer[(winWidth * y) + x] = 1.0F;
+        }
     }
 }

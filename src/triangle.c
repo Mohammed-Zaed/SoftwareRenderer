@@ -1,6 +1,9 @@
 #include "display.h"
 #include "triangle.h"
 
+extern uint32_t winWidth;
+extern float* zBuffer;
+
 static void int32Swap(int32_t* a, int32_t* b) {
     int32_t temp = *a;
     *a = *b;
@@ -208,8 +211,14 @@ void drawTexel(vec2_t p, vec4_t a, tex2_t ta, vec4_t b, tex2_t tb, vec4_t c, tex
     const float interpolatedU = ((ta.u / a.w) * alpha + (tb.u / b.w) * beta + (tc.u / c.w) * gamma) / interploated1byW;
     const float interpolatedY = ((ta.v / a.w) * alpha + (tb.v / b.w) * beta + (tc.v / c.w) * gamma) / interploated1byW;
 
-    const int32_t tx = abs((int32_t)(interpolatedU * textureWidth));
-    const int32_t ty = abs((int32_t)(interpolatedY * textureHeight));
-    
-    drawPixel(p.x, p.y, texture[(ty * textureWidth) + tx]);
+    const int32_t tx = abs((int32_t)(interpolatedU * textureWidth)) % textureWidth;
+    const int32_t ty = abs((int32_t)(interpolatedY * textureHeight)) % textureHeight;
+
+    float * zValue = &zBuffer[((int32_t)p.y *  winWidth) + (int32_t)p.x]; 
+    float temp1byW = 1.0 - interploated1byW;
+
+    if (temp1byW < *zValue) {
+        drawPixel(p.x, p.y, texture[(ty * textureWidth) + tx]);
+        *zValue = temp1byW;
+    }
 }

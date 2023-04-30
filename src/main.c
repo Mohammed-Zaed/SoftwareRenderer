@@ -22,6 +22,7 @@ uint32_t winWidth = 800;
 uint32_t winHeight = 600;
 
 uint32_t* colorBuffer = NULL;
+float* zBuffer = NULL;
 static bool isRunning = false;
 static bool isWireFrame = true;
 static bool isVertices = true;
@@ -47,6 +48,7 @@ void setup(void)
     isRunning = !initWindow();
     
     colorBuffer = (uint32_t*)malloc(sizeof(uint32_t) * winWidth * winHeight);
+    zBuffer = (float*)malloc(sizeof(float) * winWidth * winHeight);
     if (!colorBuffer) {
         fprintf(stderr, "Error:: Memory allocation for color buffer failed.\n");
     }
@@ -66,8 +68,8 @@ void setup(void)
     projectionMatrix = mat4MakePerspective(fov, aspect, zNear, zFar);
 
     // loadCubeMeshData();
-    loadObjData("./assets/cube.obj");
-    loadPngTextureData("./assets/cube.png");
+    loadObjData("./assets/f22.obj");
+    loadPngTextureData("./assets/f22.png");
 }
 
 void processInput(void)
@@ -184,8 +186,8 @@ void update(void) {
         faceVertices[1] = mesh.vertices[currentFace.b];
         faceVertices[2] = mesh.vertices[currentFace.c];
 
-        // mesh.rotation.x += 0.0001F;
-        mesh.rotation.y += 0.0001F;
+         mesh.rotation.x += 0.00001F;
+        // mesh.rotation.y += 0.0001F;
         // mesh.rotation.z += 0.0001F;
         
         // if (sx >= 1.50F) {
@@ -355,12 +357,14 @@ void render(void)
 #endif
     renderColorBuffer();
     SDL_RenderPresent(renderer);
+    clearZBuffer();
 }
 
 void freeResources(void) {
     array_free(mesh.vertices);
     array_free(mesh.faces);
     free(colorBuffer);
+    free(zBuffer);
     upng_free(pngTexture);
     meshTexture = NULL;
 }
