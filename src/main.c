@@ -13,6 +13,7 @@
 #include "triangle.h"
 #include "mesh.h"
 #include "upng.h"
+#include "camera.h"
 
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
@@ -36,7 +37,6 @@ const uint32_t FRAME_TARGET_TIME = 1000 / 33;
 
 uint32_t prevFrameTime = 0;
 
-vec3_t cameraPosition = {0.0, 0.0, 0.0};
 light_t globalLightSource = {0.00, 000.00, 1.00};
 const uint32_t MAX_TRIANGLES_PER_MESH = 10000U;
 traingle_t trianglesToRender[MAX_TRIANGLES_PER_MESH];
@@ -177,7 +177,14 @@ void update(void) {
 
     static float tx = 0.0F;
     static float ty = 0.0F;
-    static float tz = 0.0F;
+    static float tz = 4.0F;
+    
+    const vec3_t target = {0, 0, 4};
+    const vec3_t up = {0, 1, 0};
+
+    const mat4_t viewMatrix = mat4LookAt(camera.position, target, up);
+    camera.position.x += 0.01F;
+    camera.position.y += 0.01F;
 
     trianglesToRenderForCurrentFrame = 0U;
     uint32_t meshFacesCount = array_length(mesh.faces);
@@ -189,7 +196,7 @@ void update(void) {
         faceVertices[1] = mesh.vertices[currentFace.b];
         faceVertices[2] = mesh.vertices[currentFace.c];
 
-         mesh.rotation.x += 0.00001F;
+        // mesh.rotation.x += 0.0001F;
         // mesh.rotation.y += 0.0001F;
         // mesh.rotation.z += 0.0001F;
         
@@ -226,8 +233,7 @@ void update(void) {
             worldMatrix = mat4MulMat4(worldMatrix, matRotZ);
             worldMatrix = mat4MulMat4(translationMatrix, worldMatrix);
             vec4CurrentVertex = mat4Mulvec4(worldMatrix, vec4CurrentVertex);
-            vec4CurrentVertex.z += 5.0F;
-            
+            vec4CurrentVertex = mat4Mulvec4(viewMatrix, vec4CurrentVertex);
             transformedVertices[j] = vec4ToVec3(vec4CurrentVertex);
         }
 
@@ -246,7 +252,6 @@ void update(void) {
         currentFace.color = lightApplyIntensity(shadedColor,  illuminationFactor);
         // End of flat shading algorithm
         }
-
         
         // Start of Back face culling for algorithm LHS
         // Three verticies of transformed triangle face
@@ -257,7 +262,8 @@ void update(void) {
         vec3_t ab = vec3Sub(b, a);
         vec3_t ac = vec3Sub(c, a);
         vec3_t normal = vec3Normalise(vec3Cross(ab, ac));
-        vec3_t cameraRay = vec3Normalise(vec3Sub(cameraPosition, a));
+        vec3_t origin = {0.0F, 0.0F, 0.0F};
+        vec3_t cameraRay = vec3Normalise(vec3Sub(origin, a));
         float isFrontFacing = vec3Dot(normal, cameraRay);
         bool cullFace = isFrontFacing <= 0.0F ? true : false;
         // End of Backface culling algorithm

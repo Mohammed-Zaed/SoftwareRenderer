@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stdio.h>
 #include "vector.h"
 
 
@@ -65,7 +66,7 @@ vec2_t vec2Normalise(const vec2_t v) {
 }
 
 float vec3Length(const vec3_t v) {
-    const float magnitude = sqrtf((v.x * v.x) + (v.y * v.y) + (v.z * v.z));
+    const float magnitude = sqrt((v.x * v.x) + (v.y * v.y) + (v.z * v.z));
     return magnitude;
 }
 
@@ -130,4 +131,8 @@ vec3_t vec4ToVec3(const vec4_t v) {
         v.x, v.y, v.z
     };
     return result;
+}
+
+void vec3Print(vec3_t v) {
+    printf("(%f,\t%f,\t%f)\n", v.x, v.y, v.z);
 }

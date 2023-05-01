@@ -45,6 +45,7 @@ vec3_t vec3Normalise(const vec3_t v);
 vec4_t vec3ToVec4(const vec3_t v);
 vec2_t vec4ToVec2(const vec4_t v);
 vec3_t vec4ToVec3(const vec4_t v);
+void vec3Print(vec3_t v);
 
 
 #endif

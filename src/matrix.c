@@ -51,7 +51,8 @@ mat4_t mat4MakeTranslate(const float tx, const float ty, const float tz) {
 }
 
 vec4_t mat4Mulvec4(const mat4_t m, const vec4_t v) {
-    const vec4_t result = { v.x * m.m[0][0] + v.y * m.m[0][1] + v.z * m.m[0][2] + v.w * m.m[0][3],
+    const vec4_t result = { 
+        v.x * m.m[0][0] + v.y * m.m[0][1] + v.z * m.m[0][2] + v.w * m.m[0][3],
         v.x * m.m[1][0] + v.y * m.m[1][1] + v.z * m.m[1][2] + v.w * m.m[1][3],
         v.x * m.m[2][0] + v.y * m.m[2][1] + v.z * m.m[2][2] + v.w * m.m[2][3],
         v.x * m.m[3][0] + v.y * m.m[3][1] + v.z * m.m[3][2] + v.w * m.m[3][3],
@@ -131,4 +132,49 @@ vec4_t mat4MulProjectionVec4(mat4_t projection, vec4_t v) {
         result.z = result.z / result.w;
     }
     return result;
+}
+
+mat4_t mat4LookAt(vec3_t eye, vec3_t target, vec3_t up) {
+    vec3_t f = vec3Sub(target, eye);
+    vec3_t z = vec3Normalise(f);
+    vec3_t x = vec3Normalise(vec3Cross(up, z));
+    vec3_t y = vec3Normalise(vec3Cross(z, x));
+    
+#if 1
+    mat4_t viewMatrix =  
+    {{
+        {x.x, x.y, x.z, -vec3Dot(x, eye)},
+        {y.x, y.y, y.z, -vec3Dot(y, eye)},
+        {z.x, z.y, z.z, -vec3Dot(z, eye)},
+        {0.0, 0.0, 0.0,  1.0            }
+    }};
+    
+#else 
+    mat4_t translate = mat4MakeIdentity();
+    translate.m[0][3] = - eye.x;
+    translate.m[1][3] = - eye.y;
+    translate.m[2][3] = - eye.z;
+    
+    mat4_t rotate = mat4MakeIdentity();
+    rotate.m[0][0] = x.x;
+    rotate.m[0][1] = x.y;
+    rotate.m[0][2] = x.z;
+
+    rotate.m[1][0] = y.x;
+    rotate.m[1][1] = y.y;
+    rotate.m[1][2] = y.z;
+
+    rotate.m[2][0] = z.x;
+    rotate.m[2][1] = z.y;
+    rotate.m[2][2] = z.z;
+
+   mat4_t viewMatrix = mat4MulMat4(rotate, translate);
+#endif
+    return viewMatrix;
+}
+
+void mat4Print(mat4_t mat) {
+    for (uint32_t i = 0U; i < 4U; ++i) {
+            printf("|\t%f,\t%f,\t%f,\t%f\t|\n", mat.m[i][0], mat.m[i][1], mat.m[i][2], mat.m[i][3]);
+    }
 }

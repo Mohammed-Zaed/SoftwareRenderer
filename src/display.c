@@ -94,7 +94,11 @@ void drawPixel(uint32_t x, uint32_t y, uint32_t color) {
     if ((x < winWidth) && (y < winHeight)) {
         colorBuffer[(winWidth * y) + x] = color;
     } else {
-        fprintf(stderr, "Error:: Pixel x or y out of boundary\n");
+        static uint32_t once = 1;
+        if (once) {
+            fprintf(stderr, "Error:: Pixel x or y out of boundary\n");
+            once = 0;
+        }
     }
 }
 
