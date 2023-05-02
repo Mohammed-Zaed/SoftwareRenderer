@@ -171,6 +171,10 @@ void update(void) {
     if (timeToWait > 0 && timeToWait <= FRAME_TARGET_TIME) {
         SDL_Delay(timeToWait);
     }
+    
+    float deltaTime = (SDL_GetTicks() - prevFrameTime) / 1000.00F;
+    prevFrameTime = SDL_GetTicks();
+
     static float sx = 1.00F;
     static float sy = 1.00F;
     static float sz = 1.00F;
@@ -183,8 +187,8 @@ void update(void) {
     const vec3_t up = {0, 1, 0};
 
     const mat4_t viewMatrix = mat4LookAt(camera.position, target, up);
-    camera.position.x += 0.01F;
-    camera.position.y += 0.01F;
+    camera.position.x += 0.5F * deltaTime;
+    camera.position.y += 0.5F * deltaTime;
 
     trianglesToRenderForCurrentFrame = 0U;
     uint32_t meshFacesCount = array_length(mesh.faces);
