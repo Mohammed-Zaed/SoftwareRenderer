@@ -297,12 +297,16 @@ void update(void) {
         }
         
 
-        polygon_t polygon = createPolygon(transformedVertices[0], transformedVertices[1], transformedVertices[2]);
+        polygon_t polygon = createPolygon(
+                                transformedVertices[0], transformedVertices[1], transformedVertices[2], 
+                                currentFace.uva, currentFace.uvb, currentFace.uvc
+                                );
         int32_t beforeClippingVerticesCount = polygon.numVertices;
         clipPolygon(&polygon);
         traingle_t trianglesAfterClipping[MAX_NO_POLY_TRIANGLES];
+        tex2_t texCoordsAfterClipping[MAX_NO_POLY_TRIANGLES];
         int32_t numOfTrianglesAFterClipping = 0;
-        triangleFromPolygon(&polygon, trianglesAfterClipping, &numOfTrianglesAFterClipping);
+        triangleFromPolygon(&polygon, trianglesAfterClipping,  &numOfTrianglesAFterClipping);
         
         // if (true) {
         for (uint32_t k = 0U; k < numOfTrianglesAFterClipping; ++k) {
@@ -323,9 +327,9 @@ void update(void) {
                     projectedPoints[j] = tempVertex;
                 }
                 tex2_t texCoord[3] = {
-                    {currentFace.uva.u, currentFace.uva.v},
-                    {currentFace.uvb.u, currentFace.uvb.v},
-                    {currentFace.uvc.u, currentFace.uvc.v}
+                    currentTriangle.texCoord[0],
+                    currentTriangle.texCoord[1],
+                    currentTriangle.texCoord[2],
                 };
                 
                 traingle_t projectedTriangle = {

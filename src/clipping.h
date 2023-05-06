@@ -24,13 +24,15 @@ typedef struct {
 
 typedef struct {
     vec3_t vertices[MAX_NO_POLY_VERTICES];
+    tex2_t texCoords[MAX_NO_POLY_VERTICES];
     uint32_t numVertices;
 } polygon_t;
 
 void initFrustumPlanes(float fovx, float fovy, float zNear, float zFar);
-polygon_t createPolygon(vec3_t v1, vec3_t v2, vec3_t v3);
+polygon_t createPolygon(vec3_t v0, vec3_t v1, vec3_t v2, tex2_t t0, tex2_t t1, tex2_t t2);
 void clipPolygon(polygon_t* polygon);
 void clipPolygonAgainstPlane(polygon_t* polygon, int32_t plane);
 void triangleFromPolygon(polygon_t* polygon, traingle_t* triangle, int32_t* numOfTrianglesGenerated);
+float fLerp(float a, float b, float t);
 
 #endif

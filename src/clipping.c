@@ -34,9 +34,10 @@ void initFrustumPlanes(float fovx, float fovy, float zNear, float zFar)
     planesFrustum[PLANE_FAR_FRUSTUM].normal = vec3Create(0, 0, -1);
 }
 
-polygon_t createPolygon(vec3_t v0, vec3_t v1, vec3_t v2) {
+polygon_t createPolygon(vec3_t v0, vec3_t v1, vec3_t v2, tex2_t t0, tex2_t t1, tex2_t t2) {
     const polygon_t polygon = {
         .vertices = {v0, v1, v2},
+        .texCoords = {t0, t1, t2},
         .numVertices = 3
         };
     
@@ -52,17 +53,25 @@ void clipPolygon(polygon_t* polygon) {
     clipPolygonAgainstPlane(polygon, PLANE_FAR_FRUSTUM);
 }
 
+float fLerp(float a, float b, float t) {
+    return a + t * (b - a);
+}
+
 void clipPolygonAgainstPlane(polygon_t* polygon, int32_t plane) {
     vec3_t planePoint = planesFrustum[plane].point;
     vec3_t planeNormal = planesFrustum[plane].normal;
     
     vec3_t insideVerticesList[MAX_NO_POLY_VERTICES];
+    tex2_t insidetexCoordsList[MAX_NO_POLY_VERTICES];
     vec3_t outsideVerticesList[MAX_NO_POLY_VERTICES];
     uint32_t countInsideVertices = 0U;
     uint32_t countOutsideVertices = 0U;
     
     vec3_t* currentVertex = &polygon->vertices[0];
     vec3_t* previousVertex = &polygon->vertices[polygon->numVertices - 1U];
+
+    tex2_t* currentTexCoord = &polygon->texCoords[0];
+    tex2_t* previousTexCoord = &polygon->texCoords[polygon->numVertices - 1U];
 
     float previousDot = vec3Dot(vec3Sub(*previousVertex, planePoint), planeNormal);
 
@@ -76,21 +85,34 @@ void clipPolygonAgainstPlane(polygon_t* polygon, int32_t plane) {
             //TODO::Calculate the intesection point I = Q1 + t(Q2 - Q1)
             const vec3_t intersectionPoint = vec3Add(*previousVertex, vec3Mul(vec3Sub(*currentVertex, *previousVertex), t)); 
             insideVerticesList[countInsideVertices] = intersectionPoint;
+
+            const tex2_t interSectionTexCoords = {
+                .u = fLerp(previousTexCoord->u, currentTexCoord->u, t),
+                .v = fLerp(previousTexCoord->v, currentTexCoord->v, t)
+            };
+            
+            insidetexCoordsList[countInsideVertices] = interSectionTexCoords;
+
             countInsideVertices++;
         }
         
         if (currentDot > 0) {
             insideVerticesList[countInsideVertices] = *currentVertex;
+            insidetexCoordsList[countInsideVertices] = *currentTexCoord;
+            
             countInsideVertices++;
         }
 
         previousDot = currentDot;
         previousVertex = currentVertex;
+        previousTexCoord = currentTexCoord;
         currentVertex++;
+        currentTexCoord++;
     }
     
     for (int32_t i = 0; i < countInsideVertices; ++i) {
         polygon->vertices[i] = insideVerticesList[i];
+        polygon->texCoords[i] = insidetexCoordsList[i];
     }
     polygon->numVertices = countInsideVertices;
 
@@ -107,6 +129,10 @@ void triangleFromPolygon(polygon_t* polygon, traingle_t* triangle, int32_t* numO
         triangle[i].points[0] = vec3ToVec4(polygon->vertices[index0]);
         triangle[i].points[1] = vec3ToVec4(polygon->vertices[index1]);
         triangle[i].points[2] = vec3ToVec4(polygon->vertices[index2]);
+        
+        triangle[i].texCoord[0] = polygon->texCoords[index0];
+        triangle[i].texCoord[1] = polygon->texCoords[index1];
+        triangle[i].texCoord[2] = polygon->texCoords[index2];
     }
     
     *numOfTrianglesGenerated = polygon->numVertices - 2U;
