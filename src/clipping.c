@@ -1,28 +1,31 @@
 #include <math.h>
+#include <stdio.h>
 #include "clipping.h"
 
 #define NUM_OF_FRUSTUM_PLANES 6U
 
 planes_t planesFrustum[NUM_OF_FRUSTUM_PLANES];
 
-void initFrustumPlanes(float fov, float zNear, float zFar)
+void initFrustumPlanes(float fovx, float fovy, float zNear, float zFar)
 {
-    const float cosHalfFov = cos(fov / 2.0);
-    const float sinHalFov = sin(fov / 2.0);
+    const float cosHalfFovX = cos(fovx / 2.0);
+    const float sinHalFovX = sin(fovx / 2.0);
+    const float cosHalfFovY = cos(fovy / 2.0);
+    const float sinHalFovY = sin(fovy / 2.0);
     
     vec3_t origin = {0, 0, 0};
     
     planesFrustum[PLANE_LEFT_FRUSTUM].point = vec3Create(0, 0, 0);
-    planesFrustum[PLANE_LEFT_FRUSTUM].normal = vec3Create(cosHalfFov, 0, sinHalFov);
+    planesFrustum[PLANE_LEFT_FRUSTUM].normal = vec3Create(cosHalfFovX, 0, sinHalFovX);
     
     planesFrustum[PLANE_RIGHT_FRUSTUM].point = vec3Create(0, 0, 0);
-    planesFrustum[PLANE_RIGHT_FRUSTUM].normal = vec3Create(-cosHalfFov, 0, sinHalFov);
+    planesFrustum[PLANE_RIGHT_FRUSTUM].normal = vec3Create(-cosHalfFovX, 0, sinHalFovX);
 
     planesFrustum[PLANE_TOP_FRUSTUM].point = vec3Create(0, 0, 0);
-    planesFrustum[PLANE_TOP_FRUSTUM].normal = vec3Create(0, -cosHalfFov, sinHalFov);
+    planesFrustum[PLANE_TOP_FRUSTUM].normal = vec3Create(0, -cosHalfFovY, sinHalFovY);
 
     planesFrustum[PLANE_BOTTOM_FRUSTUM].point = vec3Create(0, 0, 0);
-    planesFrustum[PLANE_BOTTOM_FRUSTUM].normal = vec3Create(0, cosHalfFov, sinHalFov);
+    planesFrustum[PLANE_BOTTOM_FRUSTUM].normal = vec3Create(0, cosHalfFovY, sinHalFovY);
 
     planesFrustum[PLANE_NEAR_FRUSTUM].point = vec3Create(0, 0, zNear);
     planesFrustum[PLANE_NEAR_FRUSTUM].normal = vec3Create(0, 0, 1);
@@ -91,4 +94,20 @@ void clipPolygonAgainstPlane(polygon_t* polygon, int32_t plane) {
     }
     polygon->numVertices = countInsideVertices;
 
+}
+
+void triangleFromPolygon(polygon_t* polygon, traingle_t* triangle, int32_t* numOfTrianglesGenerated) {
+
+    for (uint32_t i = 0U; i < (polygon->numVertices - 2U); ++i)
+    {
+        uint32_t index0 = 0;
+        uint32_t index1 = i + 1;
+        uint32_t index2 = i + 2;
+
+        triangle[i].points[0] = vec3ToVec4(polygon->vertices[index0]);
+        triangle[i].points[1] = vec3ToVec4(polygon->vertices[index1]);
+        triangle[i].points[2] = vec3ToVec4(polygon->vertices[index2]);
+    }
+    
+    *numOfTrianglesGenerated = polygon->numVertices - 2U;
 }

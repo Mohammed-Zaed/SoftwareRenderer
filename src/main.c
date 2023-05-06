@@ -44,6 +44,7 @@ traingle_t trianglesToRender[MAX_TRIANGLES_PER_MESH];
 uint32_t trianglesToRenderForCurrentFrame;
 mat4_t projectionMatrix;
 uint32_t shadedColor = 0xFFFFFFFF;
+float deltaTime;
 // uint32_t shadedColor = 0xFFCDCDCD;
 
 void setup(void)
@@ -64,12 +65,14 @@ void setup(void)
         winHeight
     );
     
-    const float fov = M_PI / 3.0F;
-    const float aspect = (float)winHeight / (float)winWidth;
+    const float aspecty = (float)winHeight / (float)winWidth;
+    const float aspectx = (float)winWidth / (float)winHeight;
+    const float fovy = M_PI / 3.0F;
+    const float fovx = atan(tan(fovy / 2) * aspectx) * 2.0F;
     const float zNear = 0.1F;
     const float zFar = 100.0F;
-    projectionMatrix = mat4MakePerspective(fov, aspect, zNear, zFar);
-    initFrustumPlanes(fov, zNear, zFar);
+    projectionMatrix = mat4MakePerspective(fovy, aspecty, zNear, zFar);
+    initFrustumPlanes(fovx, fovy, zNear, zFar);
 
     // loadCubeMeshData();
     loadObjData("./assets/cube.obj");
@@ -159,11 +162,37 @@ void processInput(void)
                     isBackFaceCulling = true;
                 break;
                 
-                case SDLK_d:
+                case SDLK_x:
                     // Disable back face culling
                     isBackFaceCulling = false;
                 break;
-            }
+
+                case SDLK_UP:
+                    camera.position.y += 3.0 * deltaTime;
+                break;
+                
+                case SDLK_DOWN:
+                    camera.position.y -= 3.0 * deltaTime;
+                break;
+                
+                case SDLK_a:
+                    camera.yaw -= 1.0 * deltaTime;
+                break;
+                
+                case SDLK_d:
+                    camera.yaw += 1.0 * deltaTime;
+                break;
+
+                case SDLK_w:
+                    camera.forwardVelocity = vec3Mul(camera.direction, 5.0 * deltaTime);
+                    camera.position = vec3Add(camera.position, camera.forwardVelocity);
+                break;
+
+                case SDLK_s:
+                    camera.forwardVelocity = vec3Mul(camera.direction, 5.0 * deltaTime);
+                    camera.position = vec3Sub(camera.position, camera.forwardVelocity);
+                break;
+                }
     }
 }
 
@@ -174,7 +203,7 @@ void update(void) {
         SDL_Delay(timeToWait);
     }
     
-    float deltaTime = (SDL_GetTicks() - prevFrameTime) / 1000.00F;
+    deltaTime = (SDL_GetTicks() - prevFrameTime) / 1000.00F;
     prevFrameTime = SDL_GetTicks();
 
     static float sx = 1.00F;
@@ -185,42 +214,27 @@ void update(void) {
     static float ty = 0.0F;
     static float tz = 4.0F;
     
-    const vec3_t target = {0, 0, 4};
     const vec3_t up = {0, 1, 0};
 
+    // Initialize the target looking at the positive z-axis
+    vec3_t target = { 0, 0, 1 };
+    mat4_t cameraYawRotation = mat4MakeRotY(camera.yaw);
+    camera.direction = vec4ToVec3(mat4Mulvec4(cameraYawRotation, vec3ToVec4(target)));
+
+    // Offset the camera position in the direction where the camera is pointing at
+    target = vec3Add(camera.position, camera.direction);
+    vec3_t up_direction = { 0, 1, 0 };
+
     const mat4_t viewMatrix = mat4LookAt(camera.position, target, up);
-    camera.position.x = 0;//0.5F * deltaTime;
-    camera.position.y -= 0.5F * deltaTime;
-    camera.position.z = 0.0;// 0.5F * deltaTime;
     trianglesToRenderForCurrentFrame = 0U;
     uint32_t meshFacesCount = array_length(mesh.faces);
     for (uint32_t i = 0U; i < meshFacesCount; ++i) {
-        if (i != 4) continue;
         face_t currentFace = mesh.faces[i];
         vec3_t faceVertices[3];
 
         faceVertices[0] = mesh.vertices[currentFace.a];
         faceVertices[1] = mesh.vertices[currentFace.b];
         faceVertices[2] = mesh.vertices[currentFace.c];
-
-        // mesh.rotation.x += 0.0001F;
-        // mesh.rotation.y += 0.0001F;
-        // mesh.rotation.z += 0.0001F;
-        
-        // if (sx >= 1.50F) {
-        //     sx = 1.00F;
-        // } else {
-        //     sx += 0.000001F;
-        // }
-
-        // if (tx >= 0.50F) {
-        //     tx = 0.00F;
-        // } else {
-        //     tx += 0.0001F;
-        // }
-
-        // sy = sx;
-        // ty = tx;
                    
         vec3_t transformedVertices[3];
         for (uint32_t j = 0U; j < 3U; ++j) {
@@ -278,48 +292,50 @@ void update(void) {
         // Culling is Enabled when back face culling is on. 
         bool renderFace = !cullFace || !isBackFaceCulling;
         
-        vec4_t projectedPoints[3];
+        if (!renderFace) {
+            continue;
+        }
         
-        //TODO::Clipping
-        traingle_t currentTriangle = {
-            .points = {
-                vec3ToVec4(transformedVertices[0]), 
-                vec3ToVec4(transformedVertices[1]), 
-                vec3ToVec4(transformedVertices[2])
-            }
-        };
 
         polygon_t polygon = createPolygon(transformedVertices[0], transformedVertices[1], transformedVertices[2]);
         int32_t beforeClippingVerticesCount = polygon.numVertices;
         clipPolygon(&polygon);
-        printf("Before Clipping: %d, After Clipping: %d\n", beforeClippingVerticesCount, polygon.numVertices);
-        //TODO::After clipping break the polygon back in to triangles
-
-        if (renderFace) {
-            for (uint32_t j = 0U; j < 3U; ++j)
-            {
-                vec3_t currentVertex = transformedVertices[j];
-                vec4_t tempVertex = mat4MulProjectionVec4(projectionMatrix, vec3ToVec4(currentVertex));
-                tempVertex.y *= -1.0F;
-                tempVertex.x *= winWidth / 2;
-                tempVertex.y *= winHeight / 2;
-                tempVertex.x += winWidth / 2;
-                tempVertex.y += winHeight / 2;
-                projectedPoints[j] = tempVertex;
-            }
-            tex2_t texCoord[3] = {
-                {currentFace.uva.u, currentFace.uva.v},
-                {currentFace.uvb.u, currentFace.uvb.v},
-                {currentFace.uvc.u, currentFace.uvc.v}
-            };
+        traingle_t trianglesAfterClipping[MAX_NO_POLY_TRIANGLES];
+        int32_t numOfTrianglesAFterClipping = 0;
+        triangleFromPolygon(&polygon, trianglesAfterClipping, &numOfTrianglesAFterClipping);
+        
+        // if (true) {
+        for (uint32_t k = 0U; k < numOfTrianglesAFterClipping; ++k) {
             
-            traingle_t projectedTriangle = {
-                .points = {projectedPoints[0], projectedPoints[1], projectedPoints[2]},
-                .texCoord = {texCoord[0], texCoord[1], texCoord[2]},
-                .color = currentFace.color,
-            };
-            if (trianglesToRenderForCurrentFrame < MAX_TRIANGLES_PER_MESH) {
-                trianglesToRender[trianglesToRenderForCurrentFrame++] = projectedTriangle;
+            traingle_t currentTriangle = trianglesAfterClipping[k];
+
+            vec4_t projectedPoints[3];
+            if (numOfTrianglesAFterClipping > 0) {
+                for (uint32_t j = 0U; j < 3U; ++j)
+                {
+                    vec3_t currentVertex = vec4ToVec3(currentTriangle.points[j]);
+                    vec4_t tempVertex = mat4MulProjectionVec4(projectionMatrix, vec3ToVec4(currentVertex));
+                    tempVertex.y *= -1.0F;
+                    tempVertex.x *= winWidth / 2;
+                    tempVertex.y *= winHeight / 2;
+                    tempVertex.x += winWidth / 2;
+                    tempVertex.y += winHeight / 2;
+                    projectedPoints[j] = tempVertex;
+                }
+                tex2_t texCoord[3] = {
+                    {currentFace.uva.u, currentFace.uva.v},
+                    {currentFace.uvb.u, currentFace.uvb.v},
+                    {currentFace.uvc.u, currentFace.uvc.v}
+                };
+                
+                traingle_t projectedTriangle = {
+                    .points = {projectedPoints[0], projectedPoints[1], projectedPoints[2]},
+                    .texCoord = {texCoord[0], texCoord[1], texCoord[2]},
+                    .color = currentFace.color,
+                };
+                if (trianglesToRenderForCurrentFrame < MAX_TRIANGLES_PER_MESH) {
+                    trianglesToRender[trianglesToRenderForCurrentFrame++] = projectedTriangle;
+                }
             }
         }
     }
