@@ -136,3 +136,8 @@ vec3_t vec4ToVec3(const vec4_t v) {
 void vec3Print(vec3_t v) {
     printf("(%f,\t%f,\t%f)\n", v.x, v.y, v.z);
 }
+
+vec3_t vec3Create(const float x, const float y, const float z) {
+    const vec3_t result = {x, y, z};
+    return result;
+}

@@ -27,6 +27,8 @@ set(SRC_FILES
     src/texture.c
     src/camera.h
     src/camera.c
+    src/clipping.h
+    src/clipping.c
 
     src/main.c
 )

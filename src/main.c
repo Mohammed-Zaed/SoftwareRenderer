@@ -14,6 +14,7 @@
 #include "mesh.h"
 #include "upng.h"
 #include "camera.h"
+#include "clipping.h"
 
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
@@ -68,6 +69,7 @@ void setup(void)
     const float zNear = 0.1F;
     const float zFar = 100.0F;
     projectionMatrix = mat4MakePerspective(fov, aspect, zNear, zFar);
+    initFrustumPlanes(fov, zNear, zFar);
 
     // loadCubeMeshData();
     loadObjData("./assets/f22.obj");
