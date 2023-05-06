@@ -72,8 +72,8 @@ void setup(void)
     initFrustumPlanes(fov, zNear, zFar);
 
     // loadCubeMeshData();
-    loadObjData("./assets/f22.obj");
-    loadPngTextureData("./assets/f22.png");
+    loadObjData("./assets/cube.obj");
+    loadPngTextureData("./assets/cube.png");
 }
 
 void processInput(void)
@@ -189,12 +189,13 @@ void update(void) {
     const vec3_t up = {0, 1, 0};
 
     const mat4_t viewMatrix = mat4LookAt(camera.position, target, up);
-    camera.position.x += 0.5F * deltaTime;
-    camera.position.y += 0.5F * deltaTime;
-
+    camera.position.x = 0;//0.5F * deltaTime;
+    camera.position.y -= 0.5F * deltaTime;
+    camera.position.z = 0.0;// 0.5F * deltaTime;
     trianglesToRenderForCurrentFrame = 0U;
     uint32_t meshFacesCount = array_length(mesh.faces);
     for (uint32_t i = 0U; i < meshFacesCount; ++i) {
+        if (i != 4) continue;
         face_t currentFace = mesh.faces[i];
         vec3_t faceVertices[3];
 
@@ -278,6 +279,21 @@ void update(void) {
         bool renderFace = !cullFace || !isBackFaceCulling;
         
         vec4_t projectedPoints[3];
+        
+        //TODO::Clipping
+        traingle_t currentTriangle = {
+            .points = {
+                vec3ToVec4(transformedVertices[0]), 
+                vec3ToVec4(transformedVertices[1]), 
+                vec3ToVec4(transformedVertices[2])
+            }
+        };
+
+        polygon_t polygon = createPolygon(transformedVertices[0], transformedVertices[1], transformedVertices[2]);
+        int32_t beforeClippingVerticesCount = polygon.numVertices;
+        clipPolygon(&polygon);
+        printf("Before Clipping: %d, After Clipping: %d\n", beforeClippingVerticesCount, polygon.numVertices);
+        //TODO::After clipping break the polygon back in to triangles
 
         if (renderFace) {
             for (uint32_t j = 0U; j < 3U; ++j)
